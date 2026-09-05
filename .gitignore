@@ -1,0 +1,22 @@
+# Generated mod outputs and local tools
+/build/
+/dist/
+*.pbo
+*.bisign
+*.biprivatekey
+
+# Local runtime state and secrets
+/profiles/
+/logs/
+.env
+.env.*
+!.env.example
+*.log
+*.RPT
+*.mdmp
+
+# Editor and OS files
+.vs/
+.idea/
+Thumbs.db
+.DS_Store
