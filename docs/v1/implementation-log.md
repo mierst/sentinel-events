@@ -39,7 +39,20 @@ is part of this bootstrap. No other projects were changed.
 
 ### Resume here
 
-Review `design.md` D01-D03: corpse looting, when accepted players enter, and ready
-deadline/minimum/partial preparation policy. Then resolve the lifecycle decisions
+Review `design.md` D02-D03: when accepted players enter and ready
+deadline/minimum/partial preparation policy. D01 was resolved below. Then resolve the lifecycle decisions
 before writing an executable first-slice implementation plan. Recommendations in
 the draft are not owner approval; unresolved questions stay explicitly labeled.
+
+## 2026-09-05 - D01: allow looting eliminated contestants
+
+Owner confirmed that surviving contestants may loot eliminated players. Preserve
+corpse equipment for active contestants, prevent recovery by eliminated players,
+spectators, or outsiders, and retain only the winner's carried inventory at final
+cleanup. Item ownership follows transfers rather than remaining tied solely to
+the original kit recipient; that recipient's later disconnect must not delete
+legitimately transferred loot. Reward entitlements remain a separate system.
+
+Updated the design and roadmap acceptance evidence. Documentation only; no
+gameplay implementation or in-engine test was performed. Next decision: D02,
+ready acceptance versus transport timing.

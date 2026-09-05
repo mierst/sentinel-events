@@ -6,8 +6,10 @@ not a task-by-task execution plan. No gameplay milestone has been implemented.
 
 ## 0. Settle the first design slice
 
-- [ ] Decide corpse looting, ready/transport timing, minimum roster, and partial
-  preparation recovery (D01-D03).
+- [x] Allow surviving contestants to loot eliminated contestants; only the
+  winner's carried inventory exits (D01).
+- [ ] Decide ready/transport timing, minimum roster, and partial preparation
+  recovery (D02-D03).
 - [ ] Decide health/return clothing, vehicle entry rules, and restart/cancellation
   treatment before writing destructive lifecycle code (D04-D08).
 - [ ] Approve launch scope and client/server packaging (D09-D12).
@@ -38,7 +40,10 @@ the boundary, fallback safety, environmental interactions, and platform feasibil
 Evidence required: foot crossings, player logout inside arena, driver/passenger
 cases, supported aircraft/high-speed traversal, outside gunfire and explosives,
 simultaneous final deaths, thrown/dropped items, nested containers, and corpse
-cleanup. Test with the actual supported mod stack; do not generalize vanilla
+cleanup. Verify a surviving contestant can loot a corpse, the original owner's
+later disconnect does not delete transferred loot, spectators/outsiders cannot
+take it, and only the winner's carried inventory survives final cleanup.
+Test with the actual supported mod stack; do not generalize vanilla
 results to all vehicle or damage mods.
 
 Gate: record the supported isolation envelope and any blocking incompatibility;

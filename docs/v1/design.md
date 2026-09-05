@@ -43,9 +43,17 @@ deadline and preparation duration must not be hidden from participants.
 - Fight until a single eligible participant remains. Leaving the arena forfeits
   the event and kills the participant. Boundary tolerance details remain open.
 - Dead participants cannot retain event equipment through respawning.
+- Surviving contestants may loot eliminated contestants during the match (D01,
+  confirmed). Keep their corpses' event equipment available to active contestants;
+  do not delete it merely because its original recipient died. Eliminated players,
+  spectators, and outsiders cannot recover it. Track event ownership through
+  transfers, attachments, and containers. At settlement only the winner's carried
+  inventory is retained; remaining event-owned loot is cleaned up.
 - Logging out cannot preserve an event kit for retrieval after the event ends.
   Record forfeiture and remove equipment before normal disconnect persistence;
-  recover interrupted cleanup on reconnect/startup.
+  recover interrupted cleanup on reconnect/startup. Do not revoke equipment
+  already legitimately looted by another active contestant when its original
+  recipient later disconnects.
 - Ordinary players do not receive participant equipment, health, respawn, or
   movement rules. A temporary arena necessarily restricts access locally.
 - Outsiders inside the reserved arena are safely teleported at least 100 meters
@@ -153,11 +161,16 @@ Recommended deployment: standalone public client/server mod for this UI, with no
 external service dependency. This needs approval and a tested packaging
 plan. Modded aircraft/vehicles require an explicit supported compatibility matrix.
 
+## Resolved decisions
+
+- **D01 - Corpse looting (2026-09-05):** surviving contestants may loot eliminated
+  contestants. Only the winner's carried inventory leaves the event; reward
+  entitlements remain separate. See combat and isolation for ownership/cleanup.
+
 ## Open decisions for the next iterations
 
 | ID | Decision | Recommendation for discussion |
 | --- | --- | --- |
-| D01 | Can surviving contestants loot eliminated contestants? | Allow within event; only winner's carried equipment exits. Track transferred items, not only the original recipient. |
 | D02 | Transport immediately on acceptance or after ready check closes? | Close ready check, validate roster and arena, then prepare together to reduce partial-admission failures. This supersedes the earlier tentative immediate-transport recommendation. |
 | D03 | Ready-check timeout, minimum players, unsafe/incomplete preparation? | Configurable deadline/minimum; cancel before destruction when possible. Define partial-preparation recovery separately. |
 | D04 | Starting health/status and eliminated return equipment? | Equal healthy start; minimal explicit spectator/return clothing, no event kit. Original disease/status restoration and default return kit are not settled. |
@@ -171,7 +184,7 @@ plan. Modded aircraft/vehicles require an explicit supported compatibility matri
 | D12 | Launch scope and attribution placement? | One active BR with all safety/claim requirements; later DZE/raid/convoy. Small event-menu footer and discreet dayz.fyi link. |
 
 These are product decisions, not implementation TODOs. Resolve them in small
-groups; the first discussion should settle D01-D03 before a detailed build plan.
+groups; the next discussion should settle D02-D03 before a detailed build plan.
 
 ## Later event modes and DZE compositions
 
