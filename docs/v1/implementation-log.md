@@ -39,10 +39,9 @@ is part of this bootstrap. No other projects were changed.
 
 ### Resume here
 
-Review `design.md` D02-D03: when accepted players enter and ready
-deadline/minimum/partial preparation policy. D01 was resolved below. Then resolve the lifecycle decisions
-before writing an executable first-slice implementation plan. Recommendations in
-the draft are not owner approval; unresolved questions stay explicitly labeled.
+The product recommendations are now accepted (see latest entry below). Proceed
+to first-slice technical planning and feasibility; do not repeat D01-D12 product
+questions. Keep untested engine claims distinct from accepted intended behavior.
 
 ## 2026-09-05 - D01: allow looting eliminated contestants
 
@@ -56,3 +55,28 @@ legitimately transferred loot. Reward entitlements remain a separate system.
 Updated the design and roadmap acceptance evidence. Documentation only; no
 gameplay implementation or in-engine test was performed. Next decision: D02,
 ready acceptance versus transport timing.
+
+## 2026-09-05 - Accept remaining recommendations
+
+Owner instruction: "please accept all the recommendations you presented that I
+didn't comment on". Marked previously presented recommendations accepted while
+preserving explicit user choices. The latest recommendation resolves conflicting
+earlier proposals: transport everyone after the ready window closes; return to
+origin rather than normal survival respawn; ignore player-building placement vetoes.
+
+Accepted healthy normalized entry, minimal spectator/return clothing, vehicle
+admission blocking and recheck, one active BR, optional platforms/podium,
+configurable shrinking zone and max duration, no-winner final ties, abort/recovery
+on restart, and cancellation stripping before durable winner settlement. Retain
+settled winner inventory and awards when closing the presentation. Accepted
+two-minute podium and 24-hour claim defaults, claim commands, reusable templates,
+standalone client/server packaging, local admin identities, and discreet attribution.
+
+The earlier discussion explicitly recommended shrinking-zone configuration and
+no winner with multiple survivors at the final deadline; incorporated these into
+the baseline rather than leaving them open because the initial draft omitted them.
+
+Updated design, roadmap, README, and contributor guidance. Remaining work is
+technical specification/prototype evidence, including outsider vehicles, durable
+delivery, UI/RPC contracts, and concrete configuration values not previously
+recommended. This update implements no gameplay and makes no runtime claims.

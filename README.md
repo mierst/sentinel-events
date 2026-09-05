@@ -16,9 +16,9 @@ DayZ Editor (`.dze`) compositions are planned as a later shared capability.
 ## Planning
 
 - [V1 design and decision register](docs/v1/design.md): confirmed requirements,
-  proposed defaults, and questions that still need decisions.
+  accepted defaults and remaining implementation investigations.
 - [V1 delivery roadmap](docs/v1/roadmap.md): implementation sequence and evidence
-  required before advancing. This is a draft, not an approved execution plan.
+  required before advancing. Detailed implementation tasks are the next step.
 - [Session and decision log](docs/v1/implementation-log.md): durable planning history.
 
 The intended experience includes a client UI. Packaging and compatibility must be

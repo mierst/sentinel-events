@@ -1,21 +1,24 @@
 # V1 delivery roadmap
 
-Status: draft planning sequence, 2026-09-05. Read [the design](design.md) first.
-This roadmap does not authorize implementation of unresolved decisions and is
-not a task-by-task execution plan. No gameplay milestone has been implemented.
+Status: accepted product direction and delivery sequence, 2026-09-05. Read
+[the design](design.md) first. Detailed first-slice implementation planning is
+next; this is not a task-by-task execution plan. No gameplay milestone is implemented.
 
 ## 0. Settle the first design slice
 
 - [x] Allow surviving contestants to loot eliminated contestants; only the
   winner's carried inventory exits (D01).
-- [ ] Decide ready/transport timing, minimum roster, and partial preparation
+- [x] Accept ready/transport timing, configurable minimum roster, and partial preparation
   recovery (D02-D03).
-- [ ] Decide health/return clothing, vehicle entry rules, and restart/cancellation
+- [x] Accept health/return clothing policy, vehicle entry rules, and restart/cancellation
   treatment before writing destructive lifecycle code (D04-D08).
-- [ ] Approve launch scope and client/server packaging (D09-D12).
+- [x] Approve launch scope and standalone client/server direction (D09-D12).
+- [ ] Resolve concrete first-slice defaults and API/recovery contracts from the
+  design's implementation investigations; write a bounded execution plan.
 
-Deliverable: owner-reviewed first-slice spec with no unresolved behavior in the
-flow it authorizes. Then write a concrete implementation plan for that slice.
+The owner has accepted the product recommendations. Do not repeat product
+approval questions. Next deliverable: concrete first-slice technical specification
+and execution plan, preserving the accepted flow and identifying prototype gates.
 
 ## 1. Feasibility harness and participant lifecycle
 
@@ -45,6 +48,10 @@ later disconnect does not delete transferred loot, spectators/outsiders cannot
 take it, and only the winner's carried inventory survives final cleanup.
 Test with the actual supported mod stack; do not generalize vanilla
 results to all vehicle or damage mods.
+
+Include shrinking-boundary progression, final-deadline no-winner resolution, and
+boundary changes affecting outsiders; safe relocation must remain valid as the
+combat boundary changes.
 
 Gate: record the supported isolation envelope and any blocking incompatibility;
 do not market a universal physical barrier from position-check evidence.

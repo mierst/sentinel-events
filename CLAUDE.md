@@ -5,14 +5,17 @@ Current phase: repository bootstrap and iterative v1 design, not implementation.
 
 ## Sources of truth
 
-- `docs/v1/design.md`: confirmed behavior, proposals, and open decisions.
+- `docs/v1/design.md`: accepted behavior and remaining technical investigations.
 - `docs/v1/roadmap.md`: draft delivery sequence and acceptance gates.
 - `docs/v1/implementation-log.md`: dated decisions and work completed.
 - `LICENSE.md`: current terms, adapted only by name from Sentinel Deathmatch.
 - `CONTRIBUTING.md`: engineering and validation requirements.
 
-Keep accepted decisions separate from recommendations. Update the design and log
-when the owner resolves an open decision. Do not call an unbuilt capability
+The owner accepted previously presented recommendations on 2026-09-05, with
+explicit user choices taking precedence and the latest recommendation resolving
+conflicting earlier proposals. Do not reopen those approvals. Document remaining
+technical choices and update the design/log as evidence resolves them.
+Do not call an unbuilt capability
 implemented or tested. Do not publish a Workshop release as part of planning.
 
 ## Boundaries

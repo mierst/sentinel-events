@@ -1,8 +1,8 @@
 # Contributing
 
-This repository currently contains a design baseline. Work through the open
-decisions in [the v1 design](docs/v1/design.md) before treating the roadmap as an
-implementation specification.
+This repository currently contains an accepted product baseline. Resolve the
+implementation investigations in [the v1 design](docs/v1/design.md) and write a
+first-slice execution plan; the roadmap alone is not an implementation specification.
 
 ## Engineering requirements for implementation
 
