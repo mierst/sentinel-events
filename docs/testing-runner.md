@@ -86,6 +86,8 @@ proof of correct movement or restored controls. A unique result JSON records the
 outcome. Polling, native log flushing, and OS scheduling limit reaction time; this
 is not a real-time guarantee or a substitute for an in-engine abort path.
 
-Eleven hidden PowerShell process-double scenarios pass, including late telemetry,
-missing heartbeat, displacement limits, token isolation, and process ownership.
+Twelve hidden PowerShell process-double scenarios pass, including late telemetry,
+missing heartbeat, displacement limits, token isolation, cumulative log-byte
+limits, and process ownership. Native log transport results and their narrower
+scope are recorded in [watcher evidence](v1/evidence/watchdog.md).
 Connected gameplay validation remains a separate release gate.
