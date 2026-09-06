@@ -44,6 +44,12 @@ with the first prototype, rather than documenting nonexistent commands now.
 
 ## Source and releases
 
+This repository is public. Do not include private repository names or links,
+private issue references, unreleased private features, internal protocols, or
+private implementation behavior in code, documentation, commit messages, issues,
+or pull requests. Keep any necessary cross-project context in local untracked
+developer notes outside published history. Public documentation must stand alone.
+
 Use independently authored implementation; do not copy code or assets from other
 mods. Credit design references and interoperation formats. Contributions must be
 owned by the contributor and offered under the project's current license; this
