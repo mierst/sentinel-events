@@ -198,3 +198,18 @@ marker roundtrip, not an atomic save contract or crash-at-transition recovery.
 See evidence/persistence.md and evidence/guard-and-spawn.md for scope and hashes.
 The marker server was stopped after evidence capture; the separate movement trial
 is next. Full multiplayer isolation still needs more than the one available client.
+
+## 2026-09-05 - Live server movement override failed
+
+The first connected-client movement trial acquired the guard successfully but did
+not immobilize the character. The server recorded displacement of 20.5126 m after
+5 seconds, 82.2243 m after 20 seconds, and 120.205 m after 60 seconds. The tester
+reported being dragged toward the ocean. The timer called Release successfully,
+but restored control was not established; the lead stopped the isolated server.
+No inventory stripping, teleport, or event admission ran during this probe.
+
+The server-side HumanInputController disable/speed/angle override sequence is a
+failed mechanism and must not be reused for admission. Its diagnostic entry is
+being disabled. A replacement requires new source investigation, a bounded test
+with immediate abort, and live verification before destructive work can proceed.
+This trial does not establish inventory-transfer or outgoing-damage protection.

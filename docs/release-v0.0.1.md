@@ -6,11 +6,11 @@ in [the v1 design](v1/design.md), not the admission-only rehearsal.
 
 | Gate | Required evidence | Current state |
 | --- | --- | --- |
-| Standalone package | Dedicated-server and client compilation, explicit version and dependencies | Server boot and 11 pure admission fixtures pass; client pending |
-| Administration | Owner grants, per-request authority, approved templates, scheduling, registration, audit | Contract recorded; implementation pending |
-| Admission | Consent, eligibility, shared deadline, preflight before stripping, safe spawn, countdown | Pure policy passes; connected-player trials pending |
-| Recovery | Persistent origin and character receipts, crash boundaries, offline and replacement returns | Pending; destructive admission remains disabled |
-| Isolation | Movement/action/transfer guards, safe outsider relocation, ordinary-player control tests | Native investigation and connected trials pending |
+| Standalone package | Dedicated-server and client compilation, explicit version and dependencies | Diagnostic server build passes 149 fixtures; a prior diagnostic client build loaded; release package pending |
+| Administration | Owner grants, per-request authority, approved templates, scheduling, registration, audit | Contract recorded; ready-protocol prototype in progress; full scheduling pending |
+| Admission | Consent, eligibility, shared deadline, preflight before stripping, safe spawn, countdown | Pure policy passes; mutation remains disabled |
+| Recovery | Persistent origin and character receipts, crash boundaries, offline and replacement returns | Basic one-client marker roundtrip passed across logout/restart; destructive recovery unproven |
+| Isolation | Movement/action/transfer guards, safe outsider relocation, ordinary-player control tests | Server controller freeze FAILED and withdrawn; replacement and transfer/multiplayer gates unresolved |
 | Combat | Lootable contestants, tracked item ownership, boundary/disconnect forfeits, tie and time-limit policy | Pending |
 | Settlement | One durable winner, cancellation cutoff, retained carried inventory, safe return | Pending |
 | Claims | Partial fit, no ground drops, expiry, reconnect/restart, interrupted delivery and replay | Pending |
