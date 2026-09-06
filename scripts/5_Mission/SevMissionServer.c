@@ -4,5 +4,7 @@ modded class MissionServer
 	{
 		super.OnInit();
 		SevAdmissionTests.Register();
+		SevRecoveryTests.Register();
+		SevSessionStoreTests.Register();
 	}
 }
