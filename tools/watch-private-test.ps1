@@ -206,7 +206,8 @@ function Get-ProtocolEvent([string]$Line) {
     if (-not $prefixMatch.Success) { return $null }
     $message = $prefixMatch.Groups['message'].Value
     $escapedToken = [regex]::Escape($TrialToken)
-    if ($message -notmatch ("^\[SEV\] motion-probe token={0}(?:\s|$)" -f $escapedToken)) { return $null }
+    $currentTokenPattern = "^\[SEV\] motion-probe token={0}(?:\s|$)" -f $escapedToken
+    if (-not [regex]::IsMatch($message, $currentTokenPattern, [Text.RegularExpressions.RegexOptions]::CultureInvariant)) { return $null }
 
     $phaseMatch = [regex]::Match($message, ("^\[SEV\] motion-probe token={0} phase=(?<phase>armed|finished|failed)$" -f $escapedToken), [Text.RegularExpressions.RegexOptions]::CultureInvariant)
     if ($phaseMatch.Success) { return [pscustomobject]@{ Phase = $phaseMatch.Groups['phase'].Value; Horizontal = $null; Vertical = $null } }
@@ -224,6 +225,16 @@ function Get-ProtocolEvent([string]$Line) {
         return [pscustomobject]@{ Phase = 'invalid'; Horizontal = $null; Vertical = $null }
     }
     return [pscustomobject]@{ Phase = 'sample'; Horizontal = $horizontal; Vertical = $vertical }
+}
+
+function Get-ExpiredDeadline([TimeSpan]$Now) {
+    if (-not $observedArmed) {
+        if ($Now.TotalSeconds -ge $WaitForArmSeconds) { return 'ArmWaitTimeout' }
+        return $null
+    }
+    if (($Now - $armedAt).TotalSeconds -ge $MaxArmedSeconds) { return 'ArmedDeadline' }
+    if (($Now - $lastHeartbeatAt).TotalSeconds -ge $HeartbeatMaxSeconds) { return 'HeartbeatTimeout' }
+    return $null
 }
 
 function Read-NewLogEvents {
@@ -382,7 +393,8 @@ try {
 
     $failureReason = $null
     while (-not $observedFinished -and -not $failureReason) {
-        $now = $watchClock.Elapsed
+        $failureReason = Get-ExpiredDeadline $watchClock.Elapsed
+        if ($failureReason) { break }
         try {
             $manifestCurrent = Get-Item -LiteralPath $manifestPath -Force
             if ($manifestCurrent.Length -ne $manifestLength -or $manifestCurrent.LastWriteTimeUtc.Ticks -ne $manifestLastWriteTicks) { throw 'ManifestChanged' }
@@ -400,7 +412,12 @@ try {
             break
         }
 
+        $failureReason = Get-ExpiredDeadline $watchClock.Elapsed
+        if ($failureReason) { break }
+
         foreach ($event in $events) {
+            $failureReason = Get-ExpiredDeadline $watchClock.Elapsed
+            if ($failureReason) { break }
             $now = $watchClock.Elapsed
             switch ($event.Phase) {
                 'invalid' { $failureReason = 'InvalidTelemetry' }
@@ -435,10 +452,7 @@ try {
         }
 
         if ($failureReason -or $observedFinished) { break }
-        $now = $watchClock.Elapsed
-        if (-not $observedArmed -and $now.TotalSeconds -gt $WaitForArmSeconds) { $failureReason = 'ArmWaitTimeout' }
-        elseif ($observedArmed -and ($now - $armedAt).TotalSeconds -gt $MaxArmedSeconds) { $failureReason = 'ArmedDeadline' }
-        elseif ($observedArmed -and ($now - $lastHeartbeatAt).TotalSeconds -gt $HeartbeatMaxSeconds) { $failureReason = 'HeartbeatTimeout' }
+        $failureReason = Get-ExpiredDeadline $watchClock.Elapsed
         if (-not $failureReason) { Start-Sleep -Milliseconds $PollMilliseconds }
     }
 
