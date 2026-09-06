@@ -2,9 +2,9 @@
 
 Configurable, staff-run events on a live DayZ survival server.
 
-**Status: implementation in progress. The initial package boots and its admission
-decision fixtures pass on a dedicated server. There is no playable event or
-Workshop release yet.**
+**Status: implementation in progress. The package boots and 45 admission,
+recovery-decision, and journal fixtures pass on a dedicated server. There is no
+playable event or Workshop release yet.**
 
 The first planned mode is an isolated battle royale: scheduled registration,
 explicit ready checks, event kits, safe arena transport, a synchronized start,

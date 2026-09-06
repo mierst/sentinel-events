@@ -131,3 +131,44 @@ assigns roles by stable identity in server configuration; each request must be
 checked on the server. Permission UI and runtime enforcement remain implementation
 work. Generated an Events Workshop icon using the public Deathmatch icon as a
 style reference; texture conversion and package integration remain pending.
+
+## 2026-09-05 - Reviewed boot tooling and non-destructive persistence probes
+
+The bootstrap and its packaging safeguards passed independent review. The build
+uses explicit source/layout allowlists, rejects private-key and state files, and
+checks reparse-point ancestry before staging or output mutation. An isolated boot
+runner now captures a fresh run manifest tying the owned process, server/PBO
+hashes, and immutable fixture log together. Focused process doubles reproduced
+and verified fixes for finalization failures with a retained server and for a
+process exit racing fixture completion. Only the runner's own process is stopped.
+
+The session journal, pure recovery decisions, and character correlation probes
+are implemented and independently reviewed for the non-destructive scope. DayZ
+server 1.29.163709 passed 11 Admission, 9 Recovery, and 25 Store fixtures with no
+script errors. The successful run's PBO SHA-256 is
+`E9A0C60D706C316CA2F84FA42D0459A1E692DEF545F599B3E6C542C7F5814BA0`.
+The corresponding immutable log SHA-256 is
+`3E1501C85BCB1F9F61575C3D1D8448FB446928687315EF38BE210C3422D6E68F`.
+Full contracts and explicit unrun tests are in `evidence/persistence.md`.
+
+The journal bounds records to 16 KiB, manifests to eight sessions, and retained
+history to 32 generations per session. Generated canonical serialization and an
+integrity chain reject incomplete, inconsistent, or newer corrupt data without
+falling back to an older state. This is not an atomic transaction with character
+storage. Deletion of an entire latest suffix still needs an independent witness;
+character markers and save/load compatibility have not been proven by boot tests.
+A deliberately truncated JSON test initially emitted a native parser error despite
+correct rejection. A root-envelope check now rejects that torn suffix before
+parsing, preserving strict rejection of unexpected script errors in test logs.
+
+Only one real client is currently available. Character save/load, legacy/inter-mod
+compatibility, disconnect/restart boundaries, and multi-client isolation remain
+unrun gates. Inventory destruction and automatic destructive recovery stay disabled.
+Continue with non-destructive guard and spawn probes while those gates are open.
+
+Before implementing the spawn planner, replaced its ambiguous synchronous Resolve
+proposal with explicit incremental requests and statuses. Eight candidate checks
+are shared across each coordinator tick; attempts persist and stop at 32. This
+prevents treating a pending search as a successful or exhausted preflight. Clarified
+that owner-facing administrative grants use Steam64 strings, while internal session
+keys use the authenticated hashed identity; neither uses display names.

@@ -159,9 +159,17 @@ Decide(true, true, true, true) = DONE
 
 **Consumes:** records and eligibility. **Produces:** `SevEntryGuard.Acquire(PlayerBase
 player, string token)`, `.Release(PlayerBase player, string token)`,
-`.IsHeld(string token)`; `SevSpawnPlanner.Resolve(vector center, float radius,
-array<vector> reserved, out vector position)`, `.ResolveReturn(vector origin,
-vector fallback, out vector position)`; bounded `SevHarnessConfig` from spec.
+`.IsHeld(string token)`; incremental `SevSpawnSearch` requests created by
+`SevSpawnPlanner.BeginArena(vector center, float radius, array<vector> reserved)`
+or `.BeginReturn(vector origin, vector fallback)`. `Advance(SevSpawnSearch search,
+int candidateBudget)` consumes at most the supplied budget and exposes explicit
+PENDING, READY, and EXHAUSTED status plus a validated result position. Invalid
+inputs return an invalid request, never a synthetic safe position. The coordinator
+shares a total budget of eight candidates across all requests in one tick;
+attempt counts persist across ticks and stop at 32 per search. This replaces the
+ambiguous synchronous Resolve contract before any caller exists, so a pending
+search cannot be mistaken for a failed or completed preflight. Also produces
+bounded `SevHarnessConfig` from the admission specification.
 
 - [ ] Add config validation with every default/bound in admission-spec. Missing
   center/fallback/admin identities disables offers. Never overwrite an operator's

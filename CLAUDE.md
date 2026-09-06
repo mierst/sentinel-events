@@ -2,9 +2,10 @@
 
 Public DayZ event mod repository: https://github.com/mierst/sentinel-events.
 Current phase: first-slice implementation toward a v0.0.1 release candidate.
-The initial package compiles on a dedicated server and its admission decision
-fixtures pass. Gameplay, persistence, guards, and multiplayer recovery are not
-yet verified. A bootable package is not a playable event or a release gate pass.
+The package compiles on a dedicated server and 45 admission, recovery-decision,
+and journal fixtures pass. Character persistence, gameplay guards, and multiplayer
+recovery are not yet verified. A bootable package is not a playable event or a
+release gate pass. See `docs/v1/evidence/persistence.md` for the remaining gates.
 
 ## Sources of truth
 
