@@ -13,12 +13,15 @@ next; this is not a task-by-task execution plan. No gameplay milestone is implem
 - [x] Accept health/return clothing policy, vehicle entry rules, and restart/cancellation
   treatment before writing destructive lifecycle code (D04-D08).
 - [x] Approve launch scope and standalone client/server direction (D09-D12).
-- [ ] Resolve concrete first-slice defaults and API/recovery contracts from the
-  design's implementation investigations; write a bounded execution plan.
+- [x] Specify first-slice defaults, API boundaries, and recovery experiments in
+  [admission-spec.md](admission-spec.md) and the
+  [execution plan](../superpowers/plans/2026-09-05-admission-feasibility.md).
+- [ ] Execute the first-slice plan and establish its runtime gates; source review
+  is not evidence that freeze or crash recovery works.
 
 The owner has accepted the product recommendations. Do not repeat product
-approval questions. Next deliverable: concrete first-slice technical specification
-and execution plan, preserving the accepted flow and identifying prototype gates.
+approval questions. The first-slice specification and plan are written. Next work
+is the private rehearsal harness, beginning with a bootable pure admission policy.
 
 ## 1. Feasibility harness and participant lifecycle
 

@@ -1,7 +1,8 @@
 # Sentinel Events
 
 Public DayZ event mod repository: https://github.com/mierst/sentinel-events.
-Current phase: repository bootstrap and iterative v1 design, not implementation.
+Current phase: accepted v1 design and first-slice implementation planning.
+No gameplay implementation or runtime verification has been performed yet.
 
 ## Sources of truth
 
@@ -10,6 +11,9 @@ Current phase: repository bootstrap and iterative v1 design, not implementation.
 - `docs/v1/implementation-log.md`: dated decisions and work completed.
 - `LICENSE.md`: current terms, adapted only by name from Sentinel Deathmatch.
 - `CONTRIBUTING.md`: engineering and validation requirements.
+- `docs/v1/admission-spec.md`: private rehearsal scope, defaults, and recovery gates.
+- `docs/superpowers/plans/2026-09-05-admission-feasibility.md`: first execution plan.
+- `docs/v1/source-notes.md`: inspected vanilla surfaces and unproven native behavior.
 
 The owner accepted previously presented recommendations on 2026-09-05, with
 explicit user choices taking precedence and the latest recommendation resolving

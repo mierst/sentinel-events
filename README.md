@@ -20,6 +20,12 @@ DayZ Editor (`.dze`) compositions are planned as a later shared capability.
 - [V1 delivery roadmap](docs/v1/roadmap.md): implementation sequence and evidence
   required before advancing. Detailed implementation tasks are the next step.
 - [Session and decision log](docs/v1/implementation-log.md): durable planning history.
+- [First-slice admission specification](docs/v1/admission-spec.md): concrete
+  defaults, consent/transport sequence, and recovery gates.
+- [Admission implementation plan](docs/superpowers/plans/2026-09-05-admission-feasibility.md):
+  six bounded tasks for a private feasibility rehearsal, not the full BR release.
+- [Source investigation](docs/v1/source-notes.md): verified script surfaces and
+  native behavior that still needs runtime evidence.
 
 The intended experience includes a client UI. Packaging and compatibility must be
 validated before release. The mod is designed to operate as a standalone client/server package.

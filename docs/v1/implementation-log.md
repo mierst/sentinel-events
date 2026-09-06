@@ -39,9 +39,10 @@ is part of this bootstrap. No other projects were changed.
 
 ### Resume here
 
-The product recommendations are now accepted (see latest entry below). Proceed
-to first-slice technical planning and feasibility; do not repeat D01-D12 product
-questions. Keep untested engine claims distinct from accepted intended behavior.
+The product recommendations are accepted. The admission specification and six-task
+execution plan are written (see latest entry). Resume at task 1 of
+`docs/superpowers/plans/2026-09-05-admission-feasibility.md`; do not repeat D01-D12
+product questions. Keep untested engine claims distinct from accepted behavior.
 
 ## 2026-09-05 - D01: allow looting eliminated contestants
 
@@ -80,3 +81,32 @@ Updated design, roadmap, README, and contributor guidance. Remaining work is
 technical specification/prototype evidence, including outsider vehicles, durable
 delivery, UI/RPC contracts, and concrete configuration values not previously
 recommended. This update implements no gameplay and makes no runtime claims.
+
+## 2026-09-05 - First-slice technical specification and execution plan
+
+Continued the accepted planning work. Added `admission-spec.md`, vanilla
+`source-notes.md`, and a six-task execution plan at
+`docs/superpowers/plans/2026-09-05-admission-feasibility.md`.
+
+Selected bounded prototype defaults: 120-second ready window, minimum 2/maximum 8
+entrants, 10-second countdown, 15-second protected demonstration, 60-second combat
+quiet requirement, 250 ms coordinator, 50 m spawn disk, 10 m separation, and
+bounded candidate search. These are technical defaults under standing direction,
+not changes to the accepted public event experience. Full scheduling/editor,
+combat/looting, claims, platforms, and outsider enforcement remain later stages.
+
+Source inspection confirms the developer teleport helper explicitly targets an
+occupied transport, ClearInventory is server guarded, and OnDisconnect runs before
+the normal disconnect save. JSON SaveFile provides no visible atomic coupling to
+character persistence; UI input exclusions do not prove server-authoritative freeze.
+The local source tree has no Git metadata. Execution must record game versions and
+source hashes; no native guarantees are inferred from signatures alone.
+
+Consequently the first rehearsal keeps public combat/rewards disabled and requires
+non-destructive persistence and guard experiments before any stripping. Ambiguous
+records must block automatic destructive replay instead of guessing which current
+inventory to remove. Return obligations survive player entity replacement.
+
+Planning artifacts only: no build, server run, destructive probe, or gameplay
+code was executed. Documentation/source-contract review and local link/diff checks
+are the validation for this step. Next task: build/boot harness and pure policy.
