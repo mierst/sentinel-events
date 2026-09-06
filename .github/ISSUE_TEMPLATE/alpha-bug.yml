@@ -1,0 +1,29 @@
+name: Alpha test bug
+description: Report a reproducible Sentinel Events alpha problem
+title: "[Alpha] "
+body:
+  - type: input
+    id: build
+    attributes:
+      label: Build or release
+      placeholder: alpha-2026-09-06
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Include player count and whether the caller was an administrator.
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Expected and actual result
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Screenshots or a small redacted log excerpt. Never include credentials, player identifiers, or whole server profiles.

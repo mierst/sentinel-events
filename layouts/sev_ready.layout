@@ -1,0 +1,74 @@
+FrameWidgetClass SevReadyRoot {
+ position 0.2 0.12
+ size 0.6 0.76
+ halign left_ref
+ valign top_ref
+ {
+  PanelWidgetClass SevBackground {
+   color 0.04 0.055 0.07 0.98
+   position 0 0
+   size 1 1
+   style DayZDefaultPanel
+  }
+  TextWidgetClass SevTitle {
+   position 0.05 0.04
+   size 0.9 0.07
+   text "Sentinel Events - readiness rehearsal"
+   font "gui/fonts/sdf_MetronBook24"
+  }
+  MultilineTextWidgetClass SevWarning {
+   position 0.05 0.15
+   size 0.9 0.22
+   text "STASH YOUR GEAR BEFORE ACCEPTING EVENT ADMISSION. Intended admission permanently destroys everything you carry: items in hands, clothing, attachments and nested cargo. Original belongings are never stored or restored. You return with minimal clothing."
+   font "gui/fonts/sdf_MetronBook24"
+   wrap 1
+  }
+  MultilineTextWidgetClass SevRehearsalScope {
+   position 0.05 0.39
+   size 0.9 0.15
+   text "THIS REHEARSAL ONLY CHECKS READINESS AND SAFE LOCATIONS. It does not strip gear, teleport, change health or start an event. Destructive admission is disabled."
+   font "gui/fonts/sdf_MetronBook24"
+   wrap 1
+  }
+  TextWidgetClass SevDeadline {
+   position 0.05 0.56
+   size 0.9 0.05
+   text "Waiting for current server state"
+   font "gui/fonts/sdf_MetronBook24"
+  }
+  MultilineTextWidgetClass SevStatus {
+   position 0.05 0.63
+   size 0.9 0.14
+   text "Acceptance must be confirmed by the server."
+   font "gui/fonts/sdf_MetronBook24"
+   wrap 1
+  }
+  ButtonWidgetClass SevAccept {
+   position 0.05 0.80
+   size 0.27 0.07
+   text "Accept"
+  }
+  ButtonWidgetClass SevDecline {
+   position 0.36 0.80
+   size 0.27 0.07
+   text "Decline"
+  }
+  ButtonWidgetClass SevClose {
+   position 0.67 0.80
+   size 0.28 0.07
+   text "Close / stash first"
+  }
+  TextWidgetClass SevReopen {
+   position 0.05 0.90
+   size 0.9 0.04
+   text "Reopen the current offer with /event ready"
+   font "gui/fonts/sdf_MetronBook24"
+  }
+  TextWidgetClass SevAttribution {
+   position 0.05 0.96
+   size 0.9 0.035
+   text "Powered by Sentinel  |  dayz.fyi"
+   font "gui/fonts/sdf_MetronBook24"
+  }
+ }
+}

@@ -37,7 +37,7 @@ technical details, not claims of previously specified numerical requirements.
 | Setting | Default / bound | Purpose |
 | --- | --- | --- |
 | Enabled | false | Explicit test-server activation |
-| AdminIds | empty stable-ID allowlist | No implicit admin privilege |
+| AdminIds | empty Steam64 string allowlist | No implicit admin privilege |
 | ReadySeconds | 120; 30-600 | Time to stash and accept |
 | MinimumPlayers | 2; 2-8 | No one-player win/admission shortcut |
 | MaximumPlayers | 8; minimum-8 | Bound prototype work |
@@ -65,6 +65,8 @@ entrants. Untouched entrants keep all original possessions.
 
 Use the authenticated server-side stable player ID as the session key. A client
 payload never supplies an authoritative recipient ID or arbitrary inventory list.
+Internal sessions use the authenticated `GetId()` value; the owner-facing admin
+allowlist compares Steam64 strings from `GetPlainId()`. Neither is a display name.
 Session key: run ID + stable player ID; add a server-generated admission token
 unique to this entry. Never key durable records on a reusable entity/network ID.
 

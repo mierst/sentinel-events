@@ -1,8 +1,12 @@
 # Sentinel Events
 
 Public DayZ event mod repository: https://github.com/mierst/sentinel-events.
-Current phase: accepted v1 design and first-slice implementation planning.
-No gameplay implementation or runtime verification has been performed yet.
+Current phase: first-slice implementation toward a v0.0.1 release candidate.
+The package compiles on a dedicated server and 219 admission, recovery, journal,
+guard, spawn, and readiness fixtures pass. A diagnostic marker survived one client's logout
+and a server restart. Destructive recovery, gameplay guards, and multiplayer
+isolation remain unverified. A bootable package is not a playable event or a
+release gate pass. See `docs/v1/evidence/persistence.md` for the remaining gates.
 
 ## Sources of truth
 
@@ -14,6 +18,7 @@ No gameplay implementation or runtime verification has been performed yet.
 - `docs/v1/admission-spec.md`: private rehearsal scope, defaults, and recovery gates.
 - `docs/superpowers/plans/2026-09-05-admission-feasibility.md`: first execution plan.
 - `docs/v1/source-notes.md`: inspected vanilla surfaces and unproven native behavior.
+- `docs/v1/admin-permissions.md`: standalone server-owner role assignment contract.
 
 The owner accepted previously presented recommendations on 2026-09-05, with
 explicit user choices taking precedence and the latest recommendation resolving

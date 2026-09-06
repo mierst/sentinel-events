@@ -19,6 +19,8 @@ No third-party implementation has been copied into this repository.
 | Item creation | `scripts/4_World/Classes/PlayerGearSpawn/CfgPlayerSpawnHandler.c:173,282` | Vanilla uses hands/attachment/cargo creation APIs. Check actual returned entities and inventory; no assumed ground fallback. |
 | Protection | `scripts/3_Game/Entities/Object.c:1184` | Native `SetAllowDamage`/`GetAllowDamage`; protects target, does not itself prevent outgoing damage. Preserve preexisting protection state. |
 | Input | `scripts/3_Game/gameplay.c:795,907`; `scripts/5_Mission/mission/missionGameplay.c:797` | Mission UI input exclusions exist; `SetInputSuppression` is developer conditional. Neither establishes a general production server freeze guarantee. |
+| Failed controller guard | `scripts/3_Game/human.c:7-28` | Server-only disable/speed/angle overrides failed the live movement trial and were withdrawn. See [guard evidence](evidence/guard-and-spawn.md). Do not reuse this as a freeze. |
+| Scripted stationary command candidate | `scripts/3_Game/human.c:1202-1302,1585-1593`; `scripts/4_World/Entities/DayZPlayerImplement.c:2367-2403` | Explicit command/physics callbacks and native finish path exist. Synchronized player authority, collision behavior, and restoration remain unproven; see [experiment contract](stationary-guard-experiment.md). |
 | Character markers | `scripts/4_World/Entities/ManBase/PlayerBase.c:7034,7087` | `OnStoreSave`/`OnStoreLoad` are serialization surfaces. Versioned appended token/receipt needs save compatibility testing and recovery evidence. |
 | JSON | `scripts/3_Game/tools/JsonFileLoader.c:7,42` | `LoadFile`/`SaveFile` return status; writes use OpenFile WRITE, FPrint, CloseFile. No character-save transaction or explicit disk flush guarantee. |
 

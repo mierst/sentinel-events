@@ -110,3 +110,136 @@ inventory to remove. Return obligations survive player entity replacement.
 Planning artifacts only: no build, server run, destructive probe, or gameplay
 code was executed. Documentation/source-contract review and local link/diff checks
 are the validation for this step. Next task: build/boot harness and pure policy.
+
+## 2026-09-05 - Implementation started and native admission checks
+
+The owner authorized full implementation and preparation for a v0.0.1 publish.
+Work proceeds in an isolated release branch. Publication is not part of this step;
+all accepted BR requirements and runtime safety gates remain binding.
+
+The initial standalone PBO was loaded by DayZ dedicated server 1.29.163709.
+A fixture-only build first failed on the deliberately missing admission type.
+The first implementation attempt exposed an Enforce line-continuation syntax
+error, which was corrected. The subsequent fresh run compiled Game, World, and
+Mission and passed all 11 admission decision fixtures; the log checker also
+reported 11/11. These checks exercise pure decisions, not actual player admission,
+vehicle extraction, inventory mutation, or recovery. No participant was stripped
+or teleported during these boot tests.
+
+Added the standalone organizer/designer/event-admin permission contract. The owner
+assigns roles by stable identity in server configuration; each request must be
+checked on the server. Permission UI and runtime enforcement remain implementation
+work. Generated an Events Workshop icon using the public Deathmatch icon as a
+style reference; texture conversion and package integration remain pending.
+
+## 2026-09-05 - Reviewed boot tooling and non-destructive persistence probes
+
+The bootstrap and its packaging safeguards passed independent review. The build
+uses explicit source/layout allowlists, rejects private-key and state files, and
+checks reparse-point ancestry before staging or output mutation. An isolated boot
+runner now captures a fresh run manifest tying the owned process, server/PBO
+hashes, and immutable fixture log together. Focused process doubles reproduced
+and verified fixes for finalization failures with a retained server and for a
+process exit racing fixture completion. Only the runner's own process is stopped.
+
+The session journal, pure recovery decisions, and character correlation probes
+are implemented and independently reviewed for the non-destructive scope. DayZ
+server 1.29.163709 passed 11 Admission, 9 Recovery, and 25 Store fixtures with no
+script errors. The successful run's PBO SHA-256 is
+`E9A0C60D706C316CA2F84FA42D0459A1E692DEF545F599B3E6C542C7F5814BA0`.
+The corresponding immutable log SHA-256 is
+`3E1501C85BCB1F9F61575C3D1D8448FB446928687315EF38BE210C3422D6E68F`.
+Full contracts and explicit unrun tests are in `evidence/persistence.md`.
+
+The journal bounds records to 16 KiB, manifests to eight sessions, and retained
+history to 32 generations per session. Generated canonical serialization and an
+integrity chain reject incomplete, inconsistent, or newer corrupt data without
+falling back to an older state. This is not an atomic transaction with character
+storage. Deletion of an entire latest suffix still needs an independent witness;
+character markers and save/load compatibility have not been proven by boot tests.
+A deliberately truncated JSON test initially emitted a native parser error despite
+correct rejection. A root-envelope check now rejects that torn suffix before
+parsing, preserving strict rejection of unexpected script errors in test logs.
+
+Only one real client is currently available. Character save/load, legacy/inter-mod
+compatibility, disconnect/restart boundaries, and multi-client isolation remain
+unrun gates. Inventory destruction and automatic destructive recovery stay disabled.
+Continue with non-destructive guard and spawn probes while those gates are open.
+
+Before implementing the spawn planner, replaced its ambiguous synchronous Resolve
+proposal with explicit incremental requests and statuses. Eight candidate checks
+are shared across each coordinator tick; attempts persist and stop at 32. This
+prevents treating a pending search as a successful or exhausted preflight. Clarified
+that owner-facing administrative grants use Steam64 strings, while internal session
+keys use the authenticated hashed identity; neither uses display names.
+
+## 2026-09-05 - Native guard probes and first live marker roundtrip
+
+Added bounded configuration, token-scoped non-destructive guards, and incremental
+safe-location probes. Native compilation exposed two unsupported hook placements:
+HandEventBase belongs in Game, and DayZPlayerInventory cannot be modded by the
+native runtime. The latter hooks were removed; non-hands transfer authority remains
+unimplemented. Independent review then found a Take completion path bypassing the
+base hands hook. A narrow subtype hook now rechecks it, with real event-class RED
+and GREEN fixtures. Native transaction correction remains unproven.
+
+A real 44-character player identity exposed a session-directory path failure that
+short synthetic IDs missed. Manifest schema 2 now resolves exact immutable members
+to p0-p7 folders; old manifests retain their original layout for read/append. Record
+and character marker schemas remain 1. Native regression verification passed all
+149 fixtures, including the long-profile case. Both fixes passed independent code
+review; this does not close gameplay or destructive-recovery gates.
+
+One real client completed an untouched diagnostic marker save, normal logout/load,
+and server-process restart/load. The loaded marker matched the journal both times;
+item/clothing class names remained present. The restart run could not rewrite the
+marker. No inventory mutation or recovery was performed. This establishes a narrow
+marker roundtrip, not an atomic save contract or crash-at-transition recovery.
+See evidence/persistence.md and evidence/guard-and-spawn.md for scope and hashes.
+The marker server was stopped after evidence capture; the separate movement trial
+is next. Full multiplayer isolation still needs more than the one available client.
+
+## 2026-09-05 - Live server movement override failed
+
+The first connected-client movement trial acquired the guard successfully but did
+not immobilize the character. The server recorded displacement of 20.5126 m after
+5 seconds, 82.2243 m after 20 seconds, and 120.205 m after 60 seconds. The tester
+reported being dragged toward the ocean. The timer called Release successfully,
+but restored control was not established; the lead stopped the isolated server.
+No inventory stripping, teleport, or event admission ran during this probe.
+
+The server-side HumanInputController disable/speed/angle override sequence is a
+failed mechanism and must not be reused for admission. Its diagnostic entry is
+being disabled. A replacement requires new source investigation, a bounded test
+with immediate abort, and live verification before destructive work can proceed.
+This trial does not establish inventory-transfer or outgoing-damage protection.
+
+## 2026-09-06 - Ready menu and fixed-roster checks
+
+The read-only readiness rehearsal now has authenticated, bounded RPC requests,
+server-owned deadlines, stale-response rejection, and incremental safe-location
+preflight. Native recovery eligibility deliberately remains unavailable until a
+bounded durable recovery check exists. No inventory destruction, teleport, health
+change, or movement guard runs through this rehearsal.
+
+One connected client opened the ready menu and saw its server countdown. The
+tester confirmed that Decline returned normal controls. Server acknowledgement of
+that choice was not established. Screenshots exposed literal newline escapes and
+inconsistent text sizing; the source now separates warning paragraphs into widgets
+and applies explicit native text proportions. Corrected rendering is not yet tested.
+
+Independent review found that unrelated connection changes could interrupt fixed
+roster preflight. Three native regression fixtures reproduced the failure. The fix
+separates presentation revisions from preflight work generations and restricts
+connection-triggered cancellation to fixed roster members. All 219 fixtures passed
+in the corrected dedicated-server build: Ready 70, Admission 11, Recovery 9,
+Store 42, and GuardSpawn 87. PBO SHA256:
+`DDF028B4A1A1D5F577C90DEEE3714722368C6205395D1E60B20989604E01997A`.
+Fixture log SHA256:
+`23405302EB5B780C87D9134A6B72135FE9EED22A80BA2E3A81BEE23928D9BE8A`.
+This final artifact includes font normalization to the resource already rendered
+successfully by the title, and was rebuilt from commit `55d2a8b`.
+
+The tester is unavailable for further connected checks. The isolated menu server
+was stopped. Gameplay, destructive recovery, and multiplayer release gates remain
+open; this checkpoint is not approval to enable admission or publish a release.
