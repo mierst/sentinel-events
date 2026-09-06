@@ -59,3 +59,33 @@ failure with `-KeepRunning`, and an exit racing the last fixture. All now fail
 the run, and finalization failures stop the owned process. Separate success
 probes verify default shutdown and successful retention. These controlled
 failure probes test launcher control flow, not DayZ behavior.
+
+## Independent diagnostic watcher
+
+`tools/watch-private-test.ps1` attaches to a successful retained run using its
+profile's `run.json`. It validates the process identity, starts reading at the
+current end of the live log, and writes a unique `motion-watch-*.ready.json` before
+monitoring telemetry for the requested, case-sensitive trial token. Observe that
+ready artifact before signalling a matching diagnostic producer. The watcher
+does not start a producer, freeze a player, or launch a server itself.
+
+```powershell
+.\tools\watch-private-test.ps1 -ProfilePath $profile -TrialToken 'unique-trial-token'
+```
+
+Defaults are a 100 ms poll, 0.25 m horizontal and 0.50 m vertical displacement
+limits, a 3 second armed limit, a 1 second heartbeat limit, and a 120 second wait
+for arming. Expired monotonic deadlines take precedence over newly buffered
+telemetry. Only exact SCRIPT telemetry for the current token is considered;
+unrelated tokens, chat lines, and bytes predating attachment cannot satisfy it.
+
+On failure, the watcher rechecks its bound process identity before stopping that
+process. It never selects servers by name or kills a process tree. An observed
+`finished` message leaves the server running and is only a transport result, not
+proof of correct movement or restored controls. A unique result JSON records the
+outcome. Polling, native log flushing, and OS scheduling limit reaction time; this
+is not a real-time guarantee or a substitute for an in-engine abort path.
+
+Eleven hidden PowerShell process-double scenarios pass, including late telemetry,
+missing heartbeat, displacement limits, token isolation, and process ownership.
+Connected gameplay validation remains a separate release gate.
