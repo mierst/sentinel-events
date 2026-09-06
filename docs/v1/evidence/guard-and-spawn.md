@@ -1,0 +1,165 @@
+# Guard and safe-location feasibility probes
+
+Date: 2026-09-05. This is a non-destructive implementation probe. It does not
+admit players, strip inventory, teleport characters, or authorize recovery.
+Destructive entry remains disabled. Dedicated-server script compilation and pure
+fixtures cannot establish native movement, transfer, damage, or physics safety.
+
+## Contracts and boundaries
+
+`SevHarnessConfig` has explicit absent center/fallback arrays, an empty Steam64
+admin allowlist, and disabled offers by default. Validation rejects invalid
+settings; bounded loading never rewrites an existing operator file. Internal
+session identity remains `GetId()`; admin comparison uses server `GetPlainId()`.
+
+`SevSpawnPlanner` creates incremental requests. Only READY exposes a position;
+INVALID, PENDING, and EXHAUSTED never return a usable result. Each request retains
+its attempt count, caps at 32, and consumes at most eight candidates per advance.
+The caller must use the shared `AdvanceTick` helper once per 250 ms coordinator
+tick, for at most 16 requests (arena and return for eight entrants). No coordinator
+is implemented here. Return attempt 1 tests the origin;
+attempts 2-31 search nearby, and attempt 32 validates the fallback itself.
+
+`SevEntryGuard` is a token/identity/live-character scoped server probe. Incoming
+damage state is captured once and restored on matching release; duplicate acquire
+does not recapture the guard's own protection. A stale release cannot unlock
+another token or character. A released token is not reusable. No guard is applied
+to ordinary players merely because this package is loaded.
+
+The process-local registry retains at most 256 token tombstones and at most eight
+active identity leases; exhaustion fails new acquisition. This is a diagnostic
+bound, not durable session recovery. A replacement character does not inherit
+these side effects automatically. The missing reconnect/replacement quarantine
+gate remains explicit. Released tokens cannot act on a later character.
+
+## Native source seams
+
+References are paths in the extracted vanilla script tree, used as interface
+evidence rather than copied implementation:
+
+- `scripts/3_Game/human.c:7-25,230-237`: input-controller disabled flag and movement
+  overrides have setters but no state getters. Ordinary guard acquire/release
+  must not guess or reset a preexisting state. The separate server diagnostic
+  movement operation requires the trusted local caller to supply a known baseline
+  for an isolated trial. A baseline cannot come from a client/RPC. Release restores
+  only that supplied baseline. Concurrent controller writers invalidate the trial.
+- `scripts/3_Game/Entities/Object.c:1184-1192`: observable `GetAllowDamage` and
+  `SetAllowDamage`. Another protection writer during a held lease is an unresolved
+  ownership conflict; this probe only preserves the captured preexisting value.
+- `scripts/4_World/Classes/Weapons/WeaponManager.c:77-88`: `CanFire` pre-fire veto.
+- `scripts/4_World/Entities/ManBase/DayZPlayer/DayZPlayerMeleeFightLogic_LightHeavy.c:73-82`:
+  `CanFight` veto before fight handling.
+- `scripts/4_World/Classes/UserActionsComponent/ActionBase.c:912-917`: action veto
+  checks actor, target hierarchy, and main-item hierarchy. Existing actions require
+  interruption separately (`ActionManagerServer.c:20-33`).
+- `scripts/4_World/Entities/DayZPlayerImplementThrowing.c:125-140`: cancellation
+  of an existing throw is a transition side effect, not proof of all throw paths.
+- `scripts/4_World/Systems/Inventory/DayZPlayerInventory.c:2820-3054`: source,
+  destination, swap, and drop validators were source candidates for preserving
+  native rejection/repair paths. However, the actual 1.29 dedicated server rejected
+  the World `modded class DayZPlayerInventory` block with "Engine class cannot be
+  modded". That block was removed. **Server non-hands transfer authority is
+  unimplemented and remains a blocking gate.** Hands and action hooks do not prove
+  cargo, attachment, swap, drop, magazine or crafting coverage.
+- The same inventory file at `1767-1785` constructs request validation locally and
+  assigns `InventoryMode.JUNCTURE`; that mode is not deserialized from a client.
+  `scripts/3_Game/Systems/Inventory/Hand_Events.c:38-108` supplies the separate hands
+  veto and source/destination getters. The veto applies to server, non-remote
+  JUNCTURE operations. Trusted direct `HandEvent(SERVER)` retains native behavior;
+  no mutable global bypass flag or client permission exists.
+  `HandEventBase` must be modded in its defining Game module. A small Game policy
+  interface forwards actor and all four locations to the World participant service,
+  installed before the first guard's transition effects.
+- `scripts/3_Game/Global/Game.c:1162-1182,1312` and
+  `scripts/3_Game/Global/DayZPhysics.c:199` supply terrain/water/normal, geometry
+  clearance, and contact-ray probes. `World.c:85` supplies the map bound.
+
+All retained unguarded overrides delegate to `super`. Denied request hooks return false at
+the native decision seam, preserving the surrounding failure/repair handling.
+Existing `PlayerBase` and `MissionServer` blocks are extended; character creation
+and save/load chains are not replaced.
+
+Client input exclusions are a separate local `MissionGameplay` diagnostic, requiring
+the guarded local character, a known unused baseline for movement/aiming/menu
+groups, and an exclusive caller during the test. Those native groups are shared
+and not reference counted. It is unsafe to infer ownership from a missing group
+getter or to remove someone else's restriction. The caller must explicitly end
+the trial only when that exclusive baseline still holds. Normal guard release
+does not unconditionally reset these groups. Client inventory affordances use a
+synced participant flag; the server always consults its own registry.
+The local input diagnostic also fences start/end by token and retains bounded
+token tombstones, so a stale trial callback cannot end a later trial on the same
+character.
+
+The terrain adapter admits conservative open terrain only: a dry center and four
+footprint edges, a normal with vertical component at least 0.94, bounded height
+variation, a ground contact ray, and a 1 by 1.8 by 1 m geometry clearance box. Each
+candidate performs at most five footprint checks, one terrain normal query, one
+contact ray, and one box query. The saved-origin attempt rejects a validated height
+that differs by more than 0.5 m, rather than silently accepting terrain below a
+roof. Interiors, puddles/water volumes not reported by surface APIs, navigation
+reachability, terrain box collision semantics, and occupied/moving locations still
+need actual trials. The predicate does not reserve world space against outsiders.
+
+## Verification record
+
+The lead ran the native dedicated server against the packaged RED stubs. The
+2026-09-05 22:53 run contained all 44 initial GuardSpawn fixtures and completion
+marker; positive contract cases failed as expected, while the prior 45 fixtures
+passed. No native script error occurred. The first GREEN attempt at 23:00 failed
+World compilation because the `HandEventBase` modded hook was placed in World
+instead of its defining Game layer. That failed boot is not a fixture or gameplay
+pass. The corrected candidate uses the Game/World bridge described above.
+The 23:09 native run then rejected the DayZPlayerInventory extension as an engine
+class that cannot be modded; removing that unsupported hook permits further
+diagnostics but does not satisfy the inventory transfer requirement.
+Two further compiler corrections replaced compound vector-index assignments with
+explicit assignments and matched a fixture subclass constructor to its inherited
+signature. These failures are retained as part of the native verification history.
+
+Local validation command: `./tools/build.ps1` (source checks plus MakePbo packaging).
+Fixture suite: `GuardSpawn`; final marker: `[SEV] GuardSpawn fixtures complete`.
+Expanded fixture cases cover all configured defaults/bounds, loaded default
+clothing classes, unchanged invalid configuration, damage/token lease policy,
+pure surface rejection, area-uniform sampling, persistent cap/budget behavior,
+fallback failure, and known-baseline requirements. Native GREEN results follow
+below. The hands-policy fixtures distinguish blocked JUNCTURE from preserved
+SERVER/remote paths; these are direct scripted calls, not network authority tests.
+
+At 23:14 on 2026-09-05, the actual DayZ 1.29 dedicated server compiled the corrected
+package and passed **82/82 GuardSpawn**, plus **11/11 Admission**, **9/9 Recovery**,
+and **25/25 Store** fixtures, with no native script errors. The worker independently
+ran `tools/check-fixtures.ps1` for all four suites against the lead's captured
+`guard-live-20260905-231435-104/fixture-evidence.log`. MakePbo 2.16 / DePbo DLL 10.21
+packaged the artifact; packaging itself was never treated as compilation evidence.
+
+- Tested PBO SHA256: `F215B3D2A139CF67C34AED4C1987BF6AD1CD4DCE2DBA566BB51942B5A647A9C0`.
+- Captured fixture log SHA256: `4800887912AAAEA2253C65A9A6995E36ACE0205C7769921147AA70D1FBAB025D`.
+
+The server was retained by the lead for connected-client diagnostics. At this
+commit no connected-client Task3 result is claimed. **Task3 acceptance remains
+incomplete**, including the unimplemented non-hands transfer authority gate.
+
+## Unrun acceptance gates
+
+The following require connected-client observations and are **NOT RUN**:
+
+- Walking, sprinting, jumping, stance, ladder, held input during transition, slopes,
+  latency, and server/observer displacement with server-only and combined guards.
+- Firearm modes, mid-burst activation, fists/melee/finisher, outgoing projectile
+  attribution, and already-started actions or throws.
+- Cargo/hands/attachment drop, nested containers, swaps, quickbar, split/combine,
+  crafting, reload/magazines, outsider transfers, and stale request replay.
+- Vehicle entry and seat transitions, disconnect/reconnect and replacement
+  character timing, duplicate/stale release on live characters.
+- Incoming firearm/melee/explosion/environment/fall/attachment damage, with and
+  without preexisting damage protection.
+- Terrain slopes, shoreline/puddle edges, roofs/interiors, obstacles, moving
+  entities, and post-preflight changes. Geometry clearance is a candidate predicate,
+  not a navigation/pathfinding or future occupancy guarantee.
+- One ordinary observer receiving no restrictions; full two-participant plus
+  outsider isolation requires three connected clients and remains a release gate.
+
+An inability to stop movement or transfers keeps destructive entry disabled.
+Periodic teleport correction is not implemented and would not prove a freeze.
+Task2 character-save/crash/legacy/inter-mod gates remain unresolved independently.

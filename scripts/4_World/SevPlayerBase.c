@@ -27,6 +27,35 @@ modded class PlayerBase
 	protected string m_SevStableIdentity;
 	protected string m_SevMarkerData;
 	protected ref SevCharacterMarker m_SevMarker;
+	protected bool m_SevGuardPresentation;
+
+	void PlayerBase()
+	{
+		RegisterNetSyncVariableBool("m_SevGuardPresentation");
+	}
+
+	void SevSetGuardPresentation(bool held)
+	{
+		if (!GetGame().IsServer()) return;
+		SevCacheIdentity();
+		m_SevGuardPresentation = held;
+		SetSynchDirty();
+	}
+
+	bool SevGuardPresentation() { return m_SevGuardPresentation; }
+	string SevGuardIdentity() { return m_SevStableIdentity; }
+
+	override bool CanManipulateInventory()
+	{
+		if (SevEntryGuard.Blocks(this)) return false;
+		return super.CanManipulateInventory();
+	}
+
+	override bool CanDropEntity(notnull EntityAI item)
+	{
+		if (SevEntryGuard.Blocks(this)) return false;
+		return super.CanDropEntity(item);
+	}
 
 	override void OnStoreSave(ParamsWriteContext ctx)
 	{
