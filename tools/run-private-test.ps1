@@ -7,7 +7,7 @@ param(
     [Parameter(Mandatory)][string]$ModPath,
     [ValidateRange(1024, 65531)][int]$Port = 2402,
     [ValidateRange(10, 180)][int]$TimeoutSeconds = 90,
-    [ValidateSet('Admission', 'Recovery', 'Store')][string]$Suite = 'Admission',
+    [string]$Suite = 'Admission',
     [string]$CompletionPattern = '\[SEV\] fixture invalid-kit:',
     [switch]$KeepRunning
 )
@@ -15,6 +15,11 @@ param(
 $ErrorActionPreference = 'Stop'
 [void][regex]::new($CompletionPattern)
 $repoRoot = [IO.Path]::GetFullPath((Split-Path -Parent $PSScriptRoot))
+$fixtureChecker = Join-Path $PSScriptRoot 'check-fixtures.ps1'
+$suiteValidators = @((Get-Command $fixtureChecker).Parameters['Suite'].Attributes | Where-Object { $_ -is [System.Management.Automation.ValidateSetAttribute] })
+if ($suiteValidators.Count -ne 1 -or $Suite -notin $suiteValidators[0].ValidValues) {
+    throw "Unsupported fixture suite '$Suite' for the installed checker"
+}
 $testRoot = [IO.Path]::GetFullPath((Join-Path $repoRoot 'build/private-test'))
 $testPrefix = $testRoot.TrimEnd('\', '/') + [IO.Path]::DirectorySeparatorChar
 
@@ -130,7 +135,7 @@ try {
         if ($scriptLogs.Count -eq 1) {
             $record.LogPath = $scriptLogs[0].FullName
             $logText = Get-Content -LiteralPath $record.LogPath -Raw
-            if ($logText -match 'SCRIPT\s+\(E\):|Can.t compile|FIX-ME:\s+Syntax error') { throw 'Native script compilation failed; see the captured script log' }
+            if ($logText -match 'SCRIPT\s+\(E\):|Can.t compile|FIX-ME:\s+Syntax error') { throw 'Native script error detected; see the captured script log' }
             if ($logText -match $CompletionPattern) { $completed = $true; break }
         }
         if ($ownedServer.HasExited) { throw "Owned test server exited with code $($ownedServer.ExitCode) before fixture completion" }
@@ -141,7 +146,7 @@ try {
     $record.LiveLogPath = $record.LogPath
     $record.LogPath = Join-Path $profileDirectory 'fixture-evidence.log'
     Save-LogSnapshot $record.LiveLogPath $record.LogPath
-    & (Join-Path $PSScriptRoot 'check-fixtures.ps1') -LogPath $record.LogPath -Suite $Suite
+    & $fixtureChecker -LogPath $record.LogPath -Suite $Suite
     if (-not $?) { throw 'Fixture checker failed' }
     if ($ownedServer.HasExited) { throw "Owned server exited with code $($ownedServer.ExitCode) before run completion" }
     $record.Result = 'Passed'
