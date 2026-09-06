@@ -28,6 +28,9 @@ modded class PlayerBase
 	protected string m_SevMarkerData;
 	protected ref SevCharacterMarker m_SevMarker;
 	protected bool m_SevGuardPresentation;
+	protected bool m_SevReadyConnected;
+	protected float m_SevQuietSince;
+	protected ref SevRequestBudget m_SevRequestBudget = new SevRequestBudget();
 
 	void PlayerBase()
 	{
@@ -110,19 +113,90 @@ modded class PlayerBase
 	{
 		super.OnConnect();
 		SevConnectionDiagnostic("connect");
+		SevBeginReadyObservation();
 	}
 
 	override void OnReconnect()
 	{
 		super.OnReconnect();
 		SevConnectionDiagnostic("reconnect");
+		SevBeginReadyObservation();
 	}
 
 	override void OnDisconnect()
 	{
 		SevCacheIdentity();
+		m_SevReadyConnected = false;
+		if (SevCoordinator.Current) SevCoordinator.Current.Disconnect(this);
 		super.OnDisconnect();
 		SevConnectionDiagnostic("disconnect");
+	}
+
+	protected void SevBeginReadyObservation()
+	{
+		if (!GetGame().IsServer()) return;
+		m_SevReadyConnected = true;
+		m_SevQuietSince = SevCoordinator.Now();
+		if (SevCoordinator.Current) SevCoordinator.Current.Reconnect(this);
+	}
+	bool SevReadyConnected() { return m_SevReadyConnected; }
+	bool SevReadyQuiet(int quietSeconds)
+	{
+		return GetGame().IsServer() && m_SevReadyConnected && SevCoordinator.Now() - m_SevQuietSince >= quietSeconds;
+	}
+	int SevReadyRecoveryReason()
+	{
+		if (m_SevMarker) return SevReadyReason.RECOVERY_PENDING;
+		return SevReadyReason.RECOVERY_UNKNOWN;
+	}
+	void SevObserveCombat()
+	{
+		if (GetGame().IsServer()) m_SevQuietSince = SevCoordinator.Now();
+	}
+	// Observation only: preserve damage and record conservative victim quiet time.
+	// Source hierarchy identifies held weapons/melee actors, but unattributed
+	// projectiles/explosives do not prove complete outgoing combat observation.
+	override void EEHitBy(TotalDamageResult damageResult, int damageType, EntityAI source, int component, string dmgZone, string ammo, vector modelPos, float speedCoef)
+	{
+		super.EEHitBy(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
+		if (!GetGame().IsServer()) return;
+		SevObserveCombat();
+		PlayerBase attacker;
+		if (source) attacker = PlayerBase.Cast(source.GetHierarchyRootPlayer());
+		if (attacker && attacker != this) attacker.SevObserveCombat();
+	}
+
+	override void OnRPC(PlayerIdentity sender, int rpc_type, ParamsReadContext ctx)
+	{
+		if (!SevNet.Owned(rpc_type)) { super.OnRPC(sender, rpc_type, ctx); return; }
+		bool server = GetGame().IsServer();
+		if (!SevNet.Direction(rpc_type, server, sender != null)) return;
+		if (!server)
+		{
+			if (GetGame().GetPlayer() != this || !SevReadySink.Current) return;
+			SevReadySnapshot snapshot = new SevReadySnapshot();
+			if (snapshot.Read(ctx)) SevReadySink.Current.Receive(snapshot);
+			return;
+		}
+		// Authenticate the RPC target before any payload read or coordinator work.
+		if (!m_SevReadyConnected || !GetIdentity() || GetIdentity().GetId() != sender.GetId() || !SevCoordinator.Current) return;
+		if (!m_SevRequestBudget.Take(SevCoordinator.Now())) return;
+		int schema;
+		if (!ctx.Read(schema) || schema != SevNet.SCHEMA) return;
+		if (rpc_type == SevNet.ADMIN_REQUEST)
+		{
+			int command;
+			if (!ctx.Read(command)) return;
+			if (command == 1) SevCoordinator.Current.StartRehearsal(sender);
+			else if (command == 2) SevCoordinator.Current.Cancel(sender);
+			return;
+		}
+		string runId;
+		int revision;
+		bool accept;
+		if (!ctx.Read(runId) || runId.Length() > 64) return;
+		if (!ctx.Read(revision) || !SevNet.Envelope(schema, runId, revision) || !ctx.Read(accept)) return;
+		SevCoordinator.Current.Respond(sender, runId, revision, accept);
 	}
 
 	// Correlation only. This probe never authorizes destruction or applies guards.
