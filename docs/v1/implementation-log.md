@@ -110,3 +110,24 @@ inventory to remove. Return obligations survive player entity replacement.
 Planning artifacts only: no build, server run, destructive probe, or gameplay
 code was executed. Documentation/source-contract review and local link/diff checks
 are the validation for this step. Next task: build/boot harness and pure policy.
+
+## 2026-09-05 - Implementation started and native admission checks
+
+The owner authorized full implementation and preparation for a v0.0.1 publish.
+Work proceeds in an isolated release branch. Publication is not part of this step;
+all accepted BR requirements and runtime safety gates remain binding.
+
+The initial standalone PBO was loaded by DayZ dedicated server 1.29.163709.
+A fixture-only build first failed on the deliberately missing admission type.
+The first implementation attempt exposed an Enforce line-continuation syntax
+error, which was corrected. The subsequent fresh run compiled Game, World, and
+Mission and passed all 11 admission decision fixtures; the log checker also
+reported 11/11. These checks exercise pure decisions, not actual player admission,
+vehicle extraction, inventory mutation, or recovery. No participant was stripped
+or teleported during these boot tests.
+
+Added the standalone organizer/designer/event-admin permission contract. The owner
+assigns roles by stable identity in server configuration; each request must be
+checked on the server. Permission UI and runtime enforcement remain implementation
+work. Generated an Events Workshop icon using the public Deathmatch icon as a
+style reference; texture conversion and package integration remain pending.

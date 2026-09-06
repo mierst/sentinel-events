@@ -155,7 +155,8 @@ Support validation/preview and live event status/cancellation. Server-side
 permissions govern all administrative actions, using local admin identities
 initially. Reusable templates persist across restarts, with immutable configuration
 snapshots for active runs and export/import using the template format. Exact
-editor layout and permission representation are implementation design work.
+editor layout remains implementation design work. The accepted role and
+server-identity contract is in [admin permissions](admin-permissions.md).
 
 Use licensing matching Sentinel Deathmatch (see root LICENSE.md). Keep innocuous
 attribution: a small "Powered by Sentinel" footer on event menus and Workshop

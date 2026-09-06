@@ -2,7 +2,9 @@
 
 Configurable, staff-run events on a live DayZ survival server.
 
-**Status: design and planning. There is no playable mod, build, or Workshop release yet.**
+**Status: implementation in progress. The initial package boots and its admission
+decision fixtures pass on a dedicated server. There is no playable event or
+Workshop release yet.**
 
 The first planned mode is an isolated battle royale: scheduled registration,
 explicit ready checks, event kits, safe arena transport, a synchronized start,
@@ -26,6 +28,8 @@ DayZ Editor (`.dze`) compositions are planned as a later shared capability.
   six bounded tasks for a private feasibility rehearsal, not the full BR release.
 - [Source investigation](docs/v1/source-notes.md): verified script surfaces and
   native behavior that still needs runtime evidence.
+- [Administration permissions](docs/v1/admin-permissions.md): server-owner grants
+  and the organizer, designer, and event-admin permission contract.
 
 The intended experience includes a client UI. Packaging and compatibility must be
 validated before release. The mod is designed to operate as a standalone client/server package.
