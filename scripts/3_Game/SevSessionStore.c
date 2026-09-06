@@ -2,6 +2,8 @@ class SevSessionStore
 {
 	static const int MAX_GENERATIONS = 32;
 	static const int MAX_BYTES = 16384;
+	static const int LEGACY_MANIFEST_SCHEMA = 1;
+	static const int CURRENT_MANIFEST_SCHEMA = 2;
 	static const string ROOT = "$profile:SentinelEvents/runs/";
 
 	static bool HasObjectEnvelope(string text)
@@ -111,7 +113,9 @@ class SevSessionStore
 
 	private bool ValidManifest(SevSessionManifest manifest)
 	{
-		if (!manifest || manifest.SchemaVersion != 1 || !ValidId(manifest.RunId))
+		if (!manifest || !ValidId(manifest.RunId))
+			return false;
+		if (manifest.SchemaVersion != LEGACY_MANIFEST_SCHEMA && manifest.SchemaVersion != CURRENT_MANIFEST_SCHEMA)
 			return false;
 		if (!manifest.PlayerIds || manifest.PlayerIds.Count() < 1 || manifest.PlayerIds.Count() > 8)
 			return false;
@@ -128,6 +132,32 @@ class SevSessionStore
 					return false;
 			}
 		}
+		return true;
+	}
+
+	private bool SessionDirectory(SevSessionManifest manifest, string playerId, out string directory, out string error)
+	{
+		directory = "";
+		if (!ValidManifest(manifest)) return Fail("manifest-invalid", error);
+		int memberIndex = -1;
+		for (int index = 0; index < manifest.PlayerIds.Count(); index++)
+		{
+			// Exact identity comparison; never normalize case or accept a slot
+			// from a request. The immutable validated order owns the namespace.
+			if (manifest.PlayerIds[index] == playerId)
+			{
+				memberIndex = index;
+				break;
+			}
+		}
+		if (memberIndex < 0) return Fail("member-unknown", error);
+		directory = ROOT + Encode(manifest.RunId) + "/";
+		if (manifest.SchemaVersion == LEGACY_MANIFEST_SCHEMA)
+			directory += Encode(playerId);
+		else
+			directory += "p" + memberIndex.ToString();
+		// There is no alternate-path fallback or implicit migration. Native
+		// directory/file failures still block unusually long profile/run paths.
 		return true;
 	}
 
@@ -189,6 +219,7 @@ class SevSessionStore
 	{
 		error = "";
 		if (!ValidManifest(manifest)) return Fail("manifest-invalid", error);
+		if (manifest.SchemaVersion != CURRENT_MANIFEST_SCHEMA) return Fail("manifest-write-version", error);
 		MakeDirectory("$profile:SentinelEvents");
 		MakeDirectory("$profile:SentinelEvents/runs");
 		string directory = ROOT + Encode(manifest.RunId);
@@ -233,10 +264,12 @@ class SevSessionStore
 		return true;
 	}
 
-	private bool ReadSession(string runId, string playerId, out SevSessionRecord record, out string error)
+	private bool ReadSession(SevSessionManifest manifest, string playerId, out SevSessionRecord record, out string error)
 	{
 		record = null;
-		string directory = ROOT + Encode(runId) + "/" + Encode(playerId);
+		string directory;
+		if (!SessionDirectory(manifest, playerId, directory, error)) return false;
+		string runId = manifest.RunId;
 		string name;
 		FileAttr attributes;
 		FindFileHandle search = FindFile(directory + "/*", name, attributes, FindFileFlags.DIRECTORIES);
@@ -300,8 +333,8 @@ class SevSessionStore
 		if (!ValidRecord(record)) return Fail("record-invalid", error);
 		SevSessionManifest manifest;
 		if (!ReadManifest(record.RunId, manifest, error)) return false;
-		if (manifest.PlayerIds.Find(record.PlayerId) < 0) return Fail("member-unknown", error);
-		string directory = ROOT + Encode(record.RunId) + "/" + Encode(record.PlayerId);
+		string directory;
+		if (!SessionDirectory(manifest, record.PlayerId, directory, error)) return false;
 		if (record.Sequence == 1)
 		{
 			if (record.Phase != "INTENT_RECORDED" || FileExist(directory)) return Fail("first-generation-conflict", error);
@@ -326,7 +359,7 @@ class SevSessionStore
 		}
 		if (!WriteFresh(path, text, error)) return false;
 		SevSessionRecord readback;
-		if (!ReadSession(record.RunId, record.PlayerId, readback, error)) return false;
+		if (!ReadSession(manifest, record.PlayerId, readback, error)) return false;
 		if (SevPersistenceProbe.Hit("after-generation-readback")) return Fail("diagnostic-after-readback", error);
 		return true;
 	}
@@ -343,7 +376,7 @@ class SevSessionStore
 		foreach (string member : manifest.PlayerIds)
 		{
 			SevSessionRecord candidate;
-			if (!ReadSession(runId, member, candidate, error)) return false;
+			if (!ReadSession(manifest, member, candidate, error)) return false;
 			if (member == playerId) selected = candidate;
 		}
 		record = selected;

@@ -17,6 +17,8 @@ class SevSessionRecord
 
 class SevSessionManifest
 {
+	// v1 retains hex identity directories. v2 uses immutable member slots p0-p7.
+	// Record/character schemas are independent and remain version 1.
 	int SchemaVersion;
 	string RunId;
 	ref array<string> PlayerIds = new array<string>();
