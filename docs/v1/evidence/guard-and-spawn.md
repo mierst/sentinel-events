@@ -142,6 +142,37 @@ incomplete**, including the unimplemented non-hands transfer authority gate.
 
 ## Unrun acceptance gates
 
+Independent review found an additional hands completion gap in the original
+82-fixture candidate: vanilla `HandEventTake.CanPerformEventEx` returns true for
+`m_IsJuncture=true` before calling its base (`Hand_Events.c:238-242`). The initial
+generic HandEventBase fixture did not exercise that inherited path. A take
+accepted before guard acquisition can reach acknowledged completion afterward.
+New fixtures call the actual HandEventTake subtype with that flag, a denying
+policy, and SERVER/remote/unguarded controls. This direct-method test performs no
+inventory event and cannot establish client correction or juncture cleanup.
+The lead's native RED run reproduced both missed-veto/policy-call failures with
+all three controls passing and no script errors. A narrow Game-layer HandEventTake
+hook now checks that completion before super using the shared server/non-remote/
+JUNCTURE predicate. It checks the actor and source: vanilla Take's destination is
+the actor's hands, so that owner is already included. Initial requests keep their
+existing native/base path, and trusted SERVER/remote calls retain super behavior.
+
+The corrected source passed native compilation and **87/87 GuardSpawn** fixtures
+in `store-hands-green-20260905-232528-958` (2026-09-05 23:25), including the actual
+Take completion cases. The combined run passed 149 fixtures across all four suites
+with no native script errors. The worker independently checked GuardSpawn and the
+captured log hash; the lead owned artifact building and native execution.
+
+- Review-fix artifact SHA256: `83B720895C75CC6CDE6EDF2A9E0B9675185A56CF0220BB74F52ACAA20ADA4E9A`.
+- Review-fix log SHA256: `B89380F3A92A8DBE50D1EC9055D41D14DBC8CFB366BCD66AF2D48C4D79352EFA`.
+
+The native server's surrounding failed-condition path serializes the event,
+removes movable overrides, sends destination repair, and keeps the transaction
+unsuccessful (`DayZPlayerInventory.c:1204-1244,1298-1346`). Source inspection does
+not prove that rejecting an already acknowledged transaction leaves the client
+and inventory juncture consistent. The controlled completion-after-acquisition
+trial remains **NOT RUN**, separately from non-hands transfer coverage.
+
 The following require connected-client observations and are **NOT RUN**:
 
 - Walking, sprinting, jumping, stance, ladder, held input during transition, slopes,

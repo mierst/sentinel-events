@@ -17,8 +17,10 @@ class SevFixtureHandPolicy : SevHandGuardPolicy
 {
 	bool Deny;
 	bool LocationsForwarded;
+	bool Called;
 	override bool Blocks(Man actor, InventoryLocation src, InventoryLocation secondSrc, InventoryLocation dst, InventoryLocation secondDst)
 	{
+		Called = true;
 		LocationsForwarded = src && secondSrc && dst && secondDst && src != secondSrc && src != dst && src != secondDst;
 		return Deny;
 	}
@@ -232,6 +234,22 @@ class SevGuardSpawnTests
 		validation.m_IsRemote = false;
 		handPolicy.Deny = false;
 		Check("guard-hands-unguarded-super", true, handEvent.CanPerformEventEx(validation));
+		// Exercise the actual native-script subtype, whose acknowledged-completion
+		// branch returns before HandEventBase. No inventory event is performed.
+		HandEventTake takeEvent = new HandEventTake(null, new InventoryLocation());
+		validation.m_IsJuncture = true;
+		handPolicy.Deny = true;
+		handPolicy.Called = false;
+		Check("guard-take-completion-denied", false, takeEvent.CanPerformEventEx(validation));
+		Check("guard-take-completion-policy-called", true, handPolicy.Called);
+		validation.m_Mode = InventoryMode.SERVER;
+		Check("guard-take-completion-server-preserved", true, takeEvent.CanPerformEventEx(validation));
+		validation.m_Mode = InventoryMode.JUNCTURE;
+		validation.m_IsRemote = true;
+		Check("guard-take-completion-remote-preserved", true, takeEvent.CanPerformEventEx(validation));
+		validation.m_IsRemote = false;
+		handPolicy.Deny = false;
+		Check("guard-take-completion-unguarded-super", true, takeEvent.CanPerformEventEx(validation));
 		SevHandGuardPolicy.Handler = savedHandler;
 		Print("[SEV] GuardSpawn fixtures complete");
 	}
