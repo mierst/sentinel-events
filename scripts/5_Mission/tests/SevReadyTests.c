@@ -54,11 +54,11 @@ class SevReadyTests
 		run.Respond("b", "run-2", 1, true, 141, Eligible());
 		Check("ready-valid-preflight", true, run.Close(170, 2, 2));
 		Check("ready-preflight-phase", true, run.Phase == SevReadyPhase.PREFLIGHT);
-		Check("ready-current-callback", true, run.CurrentCallback("run-2", run.Revision));
-		Check("ready-stale-callback-revision", false, run.CurrentCallback("run-2", run.Revision - 1));
+		Check("ready-current-callback", true, run.CurrentCallback("run-2", run.CallbackRevision()));
+		Check("ready-stale-callback-revision", false, run.CurrentCallback("run-2", run.CallbackRevision() - 1));
 		Check("ready-preflight-response-denied", false, run.Respond("c", "run-2", 1, true, 169, Eligible()));
 		run.Cancel(true);
-		Check("ready-cancelled-callback", false, run.CurrentCallback("run-2", run.Revision));
+		Check("ready-cancelled-callback", false, run.CurrentCallback("run-2", run.CallbackRevision()));
 		run.Start(true, "run-3", 200, 30);
 		run.Respond("a", "run-3", 1, true, 201, Eligible());
 		Check("ready-decline-after-accept", true, run.Respond("a", "run-3", 1, false, 202, null));
@@ -81,6 +81,27 @@ class SevReadyTests
 		Check("ready-client-same-generation-other-run", false, client.Apply("other", 2, 2, SevReadyPhase.READY));
 		Check("ready-client-same-revision-other-phase", false, client.Apply("run-2", 2, 1, SevReadyPhase.REPORT));
 		Check("ready-client-zero-generation", false, client.Apply("run-3", 0, 1, SevReadyPhase.READY));
+		SevCoordinatorFixture coordinator = new SevCoordinatorFixture(null);
+		coordinator.SetupPreflight();
+		Check("ready-work-initial", true, coordinator.WorkCurrent());
+		coordinator.DisconnectIdentity("unrelated");
+		Check("ready-work-unrelated-disconnect", true, coordinator.WorkCurrent());
+		coordinator.SetupPreflight();
+		coordinator.DisconnectIdentity("declined");
+		Check("ready-work-declined-disconnect", true, coordinator.WorkCurrent());
+		coordinator.SetupPreflight();
+		coordinator.PresentationChange();
+		Check("ready-work-presentation-revision", true, coordinator.WorkCurrent());
+		coordinator.SetupPreflight();
+		coordinator.DisconnectIdentity("a");
+		Check("ready-work-fixed-disconnect-aborts", true, coordinator.IsReport());
+		Check("ready-work-fixed-disconnect-fenced", false, coordinator.WorkCurrent());
+		coordinator.SetupPreflight();
+		coordinator.CancelWork();
+		Check("ready-work-cancelled-fenced", false, coordinator.WorkCurrent());
+		coordinator.SetupPreflight();
+		coordinator.ReplaceRun();
+		Check("ready-work-old-run-fenced", false, coordinator.WorkCurrent());
 		Print("[SEV] Ready fixtures complete");
 	}
 
@@ -98,5 +119,44 @@ class SevReadyTests
 		string result = "FAIL";
 		if (expected == got) result = "PASS";
 		Print("[SEV] fixture " + name + ": expected=" + expected.ToString() + " got=" + got.ToString() + " " + result);
+	}
+}
+
+// Exercise the coordinator's real connection-change decision without creating,
+// connecting or mutating native characters. Search work stays unexecuted.
+class SevCoordinatorFixture : SevCoordinator
+{
+	void SevCoordinatorFixture(SevHarnessConfig config) {}
+	void SetupPreflight()
+	{
+		m_Run = new SevReadyRun();
+		m_Run.Start(true, "fixture-work", 100, 30);
+		m_Run.Respond("a", "fixture-work", 1, true, 101, SevReadyTests.Eligible());
+		m_Run.Respond("b", "fixture-work", 1, true, 101, SevReadyTests.Eligible());
+		m_Run.Close(130, 2, 2);
+		m_SearchRun = m_Run.RunId;
+		m_SearchRevision = m_Run.CallbackRevision();
+		m_Members.Clear(); m_Roster.Clear();
+		SevReadyMember first = new SevReadyMember();
+		first.Identity = "a"; first.Status = SevReadyStatus.ACCEPTED;
+		SevReadyMember second = new SevReadyMember();
+		second.Identity = "b"; second.Status = SevReadyStatus.ACCEPTED;
+		SevReadyMember declined = new SevReadyMember();
+		declined.Identity = "declined"; declined.Status = SevReadyStatus.DECLINED;
+		m_Members.Insert(first); m_Members.Insert(second); m_Members.Insert(declined);
+		m_Roster.Insert(first); m_Roster.Insert(second);
+	}
+	void DisconnectIdentity(string identity) { MemberConnectionChanged(Find(identity)); }
+	void PresentationChange() { Exclude(Find("declined"), SevReadyReason.DISCONNECTED); }
+	bool WorkCurrent() { return m_Run.CurrentCallback(m_SearchRun, m_SearchRevision); }
+	bool IsReport() { return m_Run.Phase == SevReadyPhase.REPORT; }
+	void CancelWork() { m_Run.Cancel(true); }
+	void ReplaceRun()
+	{
+		m_Run.Cancel(true);
+		m_Run.Start(true, "fixture-next", 200, 30);
+		m_Run.Respond("a", "fixture-next", 1, true, 201, SevReadyTests.Eligible());
+		m_Run.Respond("b", "fixture-next", 1, true, 201, SevReadyTests.Eligible());
+		m_Run.Close(230, 2, 2);
 	}
 }

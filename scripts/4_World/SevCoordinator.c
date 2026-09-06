@@ -143,7 +143,7 @@ class SevCoordinator
 		SevReadyMember member = Find(player.GetIdentity().GetId());
 		if (!member) return;
 		// Never substitute a new character into an accepted/fixed roster.
-		Exclude(member, SevReadyReason.DISCONNECTED);
+		MemberConnectionChanged(member);
 		member.Recipient = player;
 		Push(member, player, false);
 	}
@@ -152,9 +152,17 @@ class SevCoordinator
 		if (!GetGame().IsServer()) return;
 		foreach (SevReadyMember member : m_Members)
 		{
-			if (member.Character == player) Exclude(member, SevReadyReason.DISCONNECTED);
+			if (member.Character == player) { MemberConnectionChanged(member); return; }
 		}
-		if (m_Run.Phase == SevReadyPhase.PREFLIGHT) Finish(SevReadyReason.DISCONNECTED);
+		MemberConnectionChanged(null);
+	}
+	protected void MemberConnectionChanged(SevReadyMember member)
+	{
+		if (!member) return;
+		Exclude(member, SevReadyReason.DISCONNECTED);
+		// The frozen roster owns preflight validity. A declined/offered player's
+		// presentation update cannot cancel another character's location checks.
+		if (m_Run.Phase == SevReadyPhase.PREFLIGHT && m_Roster.Find(member) >= 0) Finish(SevReadyReason.DISCONNECTED);
 	}
 	protected void CloseReady(float now)
 	{
@@ -176,7 +184,7 @@ class SevCoordinator
 		m_PreflightMember = 0;
 		m_PreflightDeadline = now + m_Config.PreparationTimeoutSeconds;
 		m_SearchRun = m_Run.RunId;
-		m_SearchRevision = m_Run.Revision;
+		m_SearchRevision = m_Run.CallbackRevision();
 		BeginMemberSearch();
 		PushAll(false);
 	}

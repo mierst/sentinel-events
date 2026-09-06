@@ -50,6 +50,7 @@ class SevReadyRun
 	int Phase;
 	float Deadline;
 	ref array<string> Accepted = new array<string>();
+	protected int m_WorkGeneration;
 	bool Start(bool admin, string runId, float now, int duration)
 	{
 		if (!admin || Phase == SevReadyPhase.READY || Phase == SevReadyPhase.PREFLIGHT) return false;
@@ -85,6 +86,7 @@ class SevReadyRun
 		Phase = SevReadyPhase.REPORT;
 		if (eligibleCount > Accepted.Count() || !SevAdmission.CanPrepare(eligibleCount, minimum, true, true)) return false;
 		Phase = SevReadyPhase.PREFLIGHT;
+		m_WorkGeneration++;
 		return true;
 	}
 	bool Cancel(bool admin)
@@ -97,8 +99,11 @@ class SevReadyRun
 	}
 	bool CurrentCallback(string runId, int revision)
 	{
-		return Phase == SevReadyPhase.PREFLIGHT && runId == RunId && revision == Revision;
+		return Phase == SevReadyPhase.PREFLIGHT && runId == RunId && revision == CallbackRevision();
 	}
+	// Frozen work is independent of presentation/recipient status revisions.
+	// Run and phase remain part of CurrentCallback; a later freeze gets a new ID.
+	int CallbackRevision() { return m_WorkGeneration; }
 }
 
 class SevClientRevision

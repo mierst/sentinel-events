@@ -20,7 +20,33 @@ class SevReadyMenu : UIScriptedMenu
 		m_Accept = ButtonWidget.Cast(layoutRoot.FindAnyWidget("SevAccept"));
 		m_Decline = ButtonWidget.Cast(layoutRoot.FindAnyWidget("SevDecline"));
 		m_Close = ButtonWidget.Cast(layoutRoot.FindAnyWidget("SevClose"));
+		// Native text proportion is relative to widget height, not font filename.
+		// Use the measured pixel height so multiline panels and short labels share
+		// a readable text size instead of inheriting very different defaults.
+		SizeText("SevTitle", 24);
+		SizeText("SevWarning", 18);
+		SizeText("SevRehearsalScope", 18);
+		SizeText("SevDeadline", 18);
+		SizeText("SevStatus", 18);
+		SizeText("SevReopen", 16);
+		SizeText("SevAttribution", 14);
+		SizeButton(m_Accept, 18); SizeButton(m_Decline, 18); SizeButton(m_Close, 18);
 		return layoutRoot;
+	}
+	protected void SizeText(string name, int pixels)
+	{
+		TextWidget text = TextWidget.Cast(layoutRoot.FindAnyWidget(name));
+		if (!text) return;
+		float width; float height;
+		text.GetScreenSize(width, height);
+		if (height > 0) text.SetTextProportion(Math.Min(1, pixels / height));
+	}
+	protected void SizeButton(ButtonWidget button, int pixels)
+	{
+		if (!button) return;
+		float width; float height;
+		button.GetScreenSize(width, height);
+		if (height > 0) button.SetTextProportion(Math.Min(1, pixels / height));
 	}
 	override void OnHide()
 	{
@@ -44,7 +70,7 @@ class SevReadyMenu : UIScriptedMenu
 		if (snapshot.Phase == SevReadyPhase.PREFLIGHT) status = "Checking the roster and safe locations. No equipment, health or position changes.";
 		if (snapshot.Phase == SevReadyPhase.REPORT) status = "Preflight report: " + Reason(snapshot.Reason) + " No demonstration starts; your character is unchanged.";
 		if (snapshot.Phase == SevReadyPhase.CANCELLED) status = "The administrator cancelled this rehearsal. Your character is unchanged.";
-		if (m_Waiting) status = "Request sent. Waiting for the server; acceptance is not yet confirmed.";
+		if (m_Waiting) status = "Request sent. Waiting for the server to confirm your choice.";
 		if (vehicle && open) status = "Exit the vehicle before accepting. " + status;
 		if (!fresh) status = "Connection state is stale. Waiting for a current server response; acceptance is disabled.";
 		m_Status.SetText(status);
@@ -64,7 +90,7 @@ class SevReadyMenu : UIScriptedMenu
 				m_Waiting = true;
 				m_RequestSent = SevCoordinator.Now();
 				m_Accept.Enable(false); m_Decline.Enable(false);
-				m_Status.SetText("Request sent. Waiting for the server; acceptance is not yet confirmed.");
+				m_Status.SetText("Request sent. Waiting for the server to confirm your choice.");
 			}
 			return true;
 		}
@@ -75,8 +101,8 @@ class SevReadyMenu : UIScriptedMenu
 		switch (reason)
 		{
 			case SevReadyReason.NONE: return "Read-only checks completed.";
-			case SevReadyReason.RECOVERY_UNKNOWN: return "Recovery status is unknown; no bounded clear proof is available.";
-			case SevReadyReason.RECOVERY_PENDING: return "A character marker needs recovery review.";
+			case SevReadyReason.RECOVERY_UNKNOWN: return "Entry is unavailable until previous event status can be verified. Contact staff.";
+			case SevReadyReason.RECOVERY_PENDING: return "Your previous event status needs staff review.";
 			case SevReadyReason.QUIET: return "Wait the full configured combat quiet interval after connection or observed damage.";
 			case SevReadyReason.VEHICLE: return "Exit the vehicle; this rehearsal never extracts passengers.";
 			case SevReadyReason.DEAD: return "The original character is no longer alive.";
@@ -84,10 +110,10 @@ class SevReadyMenu : UIScriptedMenu
 			case SevReadyReason.RESTRAINED: return "The character is restrained.";
 			case SevReadyReason.UNCONSCIOUS: return "The character is unconscious.";
 			case SevReadyReason.MINIMUM: return "Too few eligible participants; at least two are required.";
-			case SevReadyReason.SPAWN: return "No validated safe arena/return position was found within the search cap.";
-			case SevReadyReason.TIMEOUT: return "The non-destructive location check timed out.";
+			case SevReadyReason.SPAWN: return "No safe location was found.";
+			case SevReadyReason.TIMEOUT: return "Location checks timed out.";
 			case SevReadyReason.CANCELLED: return "Cancelled by the administrator.";
-			case SevReadyReason.FULL: return "The bounded roster is full.";
+			case SevReadyReason.FULL: return "The rehearsal is full.";
 		}
 		return "Unknown server reason; acceptance is unavailable.";
 	}
