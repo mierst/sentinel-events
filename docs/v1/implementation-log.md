@@ -172,3 +172,29 @@ are shared across each coordinator tick; attempts persist and stop at 32. This
 prevents treating a pending search as a successful or exhausted preflight. Clarified
 that owner-facing administrative grants use Steam64 strings, while internal session
 keys use the authenticated hashed identity; neither uses display names.
+
+## 2026-09-05 - Native guard probes and first live marker roundtrip
+
+Added bounded configuration, token-scoped non-destructive guards, and incremental
+safe-location probes. Native compilation exposed two unsupported hook placements:
+HandEventBase belongs in Game, and DayZPlayerInventory cannot be modded by the
+native runtime. The latter hooks were removed; non-hands transfer authority remains
+unimplemented. Independent review then found a Take completion path bypassing the
+base hands hook. A narrow subtype hook now rechecks it, with real event-class RED
+and GREEN fixtures. Native transaction correction remains unproven.
+
+A real 44-character player identity exposed a session-directory path failure that
+short synthetic IDs missed. Manifest schema 2 now resolves exact immutable members
+to p0-p7 folders; old manifests retain their original layout for read/append. Record
+and character marker schemas remain 1. Native regression verification passed all
+149 fixtures, including the long-profile case. Both fixes passed independent code
+review; this does not close gameplay or destructive-recovery gates.
+
+One real client completed an untouched diagnostic marker save, normal logout/load,
+and server-process restart/load. The loaded marker matched the journal both times;
+item/clothing class names remained present. The restart run could not rewrite the
+marker. No inventory mutation or recovery was performed. This establishes a narrow
+marker roundtrip, not an atomic save contract or crash-at-transition recovery.
+See evidence/persistence.md and evidence/guard-and-spawn.md for scope and hashes.
+The marker server was stopped after evidence capture; the separate movement trial
+is next. Full multiplayer isolation still needs more than the one available client.

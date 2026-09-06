@@ -2,8 +2,9 @@
 
 Status: non-destructive implementation; destructive admission/replay remains disabled.
 Recorded 2026-09-05 (America/New_York), native server 1.29.163709, mod 0.0.1-pre.
-No inventory removal, item issuance, teleport, quarantine, character-save request,
-or automatic recovery action is implemented by this probe.
+No inventory removal, item issuance, teleport, quarantine, or automatic recovery
+action is implemented by this probe. A separate ignored diagnostic mission issued
+an explicit character-save request for the live marker test described below.
 
 ## Implemented storage contract
 
@@ -33,9 +34,13 @@ Bounds and deliberate limitations:
   readback. Truncated root envelopes are rejected before native parsing.
 - Each identifier is 1-64 ASCII characters. Run/token/receipt alphabets are letters,
   digits, underscore and hyphen. Player IDs additionally allow base64 `+`, `/`,
-  `=`. Every path segment is lowercase two-digit hex per input byte, preserving
-  case and preventing path traversal and collisions. Unsupported identities or
-  filesystem path limits fail closed; raw IDs never become path segments.
+  `=`. Run path segments use lowercase two-digit hex per input byte. New manifests
+  require schema 2 and use session folders `p0` through `p7`, derived only from
+  exact, case-sensitive identity position in the validated immutable manifest.
+  Record identity is checked on read. Legacy schema-1 manifests retain their hex
+  session paths for read/append; there is no migration or layout fallback. Record
+  and character-marker schemas remain 1. Unsupported identities or filesystem
+  path limits fail closed; raw IDs never become path segments.
 - Each session retains 1-32 contiguous generations. Enumeration stops after an
   unexpected entry or the cap. Exhaustion blocks writes; there is no automatic
   pruning, run adoption or restart-time directory crawl. No global retention
@@ -139,12 +144,49 @@ Reproduction commands from the checkout:
 ./tools/check-fixtures.ps1 -LogPath <captured-script-log> -Suite Store
 ```
 
-The last boot marker is `[SEV] Store fixtures complete`; the Recovery marker is
-`[SEV] Recovery fixtures complete`. Actual run manifests/logs and synthetic profile
+The Store marker is `[SEV] Store fixtures complete`; the Recovery marker is
+`[SEV] Recovery fixtures complete`. The combined package finishes with
+`[SEV] GuardSpawn fixtures complete`. Actual run manifests/logs and synthetic profile
 records remain in ignored local build profiles. Do not publish profiles or real
 player records.
 
-## Required live evidence still NOT RUN
+## Live marker and path-length findings
+
+One real client exercised an isolated diagnostic build with marker writes enabled
+and no inventory mutation. The first real-ID session failed at `session-create`:
+the 44-character authenticated ID produced a 264-character session directory.
+The manifest existed, but the session directory did not. Shortening the isolated
+profile allowed the same marker probe to proceed.
+
+The permanent fix uses manifest-v2 member slots. Native regression tests passed
+under a 116-character profile root, longer than the original 110-character root.
+All 149 fixtures passed: Admission 11, Recovery 9, Store 42, GuardSpawn 87. Store
+cases cover 44-character case-distinct identities, wrong-slot contents, legacy
+read/append without migration, and rejection of newly requested schema-1 manifests.
+PBO SHA-256: `83B720895C75CC6CDE6EDF2A9E0B9675185A56CF0220BB74F52ACAA20ADA4E9A`.
+Captured regression log SHA-256:
+`B89380F3A92A8DBE50D1EC9055D41D14DBC8CFB366BCD66AF2D48C4D79352EFA`.
+
+The live marker trial deliberately retained its original diagnostic artifact
+while the path fix was developed. A normal logout and reconnect executed native
+character load and returned `journal=true matching=true`. The server was then
+terminated after that explicit save request and restarted with the same character
+storage. Its diagnostic journal was copied unchanged to a fresh log profile.
+With marker writes disabled in the new profile, the next character load again
+returned `journal=true matching=true`. The same six item/clothing class names
+plus the character entry were enumerated before and after; this is not a full
+comparison of quantities, damage, or all serialized properties.
+
+This establishes one basic marker roundtrip across logout and server restart.
+It does not establish save acknowledgement, atomicity with inventory changes,
+crash-at-transition recovery, legacy character compatibility, or inter-mod safety.
+The diagnostic PBO SHA-256 is
+`4DBFB59A3B7A7360F111328B19353F3E993539410722321EB09EF0817856CE59`.
+Live logs and real player records remain local and untracked.
+The final local restart-observation log SHA-256 is
+`83C4F8C4837D98246339AC875A73C741DDA54D7371B29EDBDC026D8E8C6281EE`.
+
+## Required live evidence still incomplete
 
 | Boundary or behavior | Result |
 | --- | --- |
@@ -153,7 +195,7 @@ player records.
 | Terminate before/after actual character return receipt save | NOT RUN |
 | Journal-to-character token mismatch after reconnect | NOT RUN; pure decision mismatch fixture only |
 | Legacy character load and other-mod appended-field compatibility | NOT RUN |
-| Connect/reconnect/disconnect callback ordering with real client | NOT RUN |
+| Connect/load/disconnect observation with real client | Basic logout/reload and server-restart marker roundtrip passed; earliest-interaction ordering NOT RUN |
 | Earliest interaction versus recovery/quarantine | NOT RUN; no quarantine implemented |
 | Distinguish real untouched/mutated/returned inventory across crashes | NOT RUN |
 | Multi-client crash/restart matrix | NOT RUN; one real client available |
