@@ -3,6 +3,31 @@
 This is the implementation contract for the accepted standalone permission
 model. It describes intended behavior; runtime verification is tracked separately.
 
+## Current diagnostic implementation
+
+The implemented rehearsal uses a server-configured `AdminIds` allowlist of Steam64
+strings. It does not yet implement the three roles, permission reload, scheduling,
+template approval, or administrative audit described below. Rehearsal configuration
+is disabled by default and must pass validation before offers can start.
+
+| Command | Current behavior |
+| --- | --- |
+| `/event rehearse` | An authenticated allowlisted administrator requests a read-only readiness rehearsal. |
+| `/event cancel` | An authenticated allowlisted administrator requests cancellation of the rehearsal. |
+| `/event ready` | A player locally reopens their current, fresh ready offer; this does not create an offer or extend its deadline. |
+
+The commands are exact, case-sensitive chat input. The server derives administrative
+identity from the RPC sender and checks its live player target. Client-supplied
+identities cannot grant access. Readiness responses are separately scoped to the
+offered player, run, revision, and server deadline.
+
+This rehearsal never strips equipment, teleports, freezes, or starts combat. Its
+native recovery-status adapter remains conservative and cannot yet establish that
+a player is clear to enter an event. A visible menu or successful request is not
+proof that the full admission preflight can succeed.
+
+## Full event permission contract
+
 The server owner grants roles to stable Steam64 identities in server-side
 configuration. Player display names and client-supplied identities never grant
 authority. Empty or invalid configuration grants nobody event administration.
