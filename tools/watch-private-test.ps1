@@ -242,13 +242,13 @@ function Read-NewLogEvents {
     $length = $logStream.Length
     if ($length -lt $logStream.Position) { throw 'LogTruncated' }
     $available = $length - $logStream.Position
-    if ($appendedBytes + $available -gt $MaxAppendedBytes) { throw 'LogAppendLimit' }
+    if ($script:appendedBytes + $available -gt $MaxAppendedBytes) { throw 'LogAppendLimit' }
     $buffer = [byte[]]::new([Math]::Min(65536, [Math]::Max(1, $available)))
     while ($available -gt 0) {
         $requested = [int][Math]::Min($buffer.Length, $available)
         $read = $logStream.Read($buffer, 0, $requested)
         if ($read -le 0) { break }
-        $appendedBytes += $read
+        $script:appendedBytes += $read
         $available -= $read
         for ($index = 0; $index -lt $read; $index++) {
             $value = $buffer[$index]
