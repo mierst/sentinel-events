@@ -53,3 +53,9 @@ wrote the completed manifest, and stopped its owned process. Negative probes
 rejected an existing profile and a reparse-point addons path before launch. An
 initial post-stop log-lock race was reproduced and fixed by capturing the snapshot
 with shared-read access and explicitly waiting for exit.
+
+Focused process doubles also exercised evidence-hash failure, final-manifest
+failure with `-KeepRunning`, and an exit racing the last fixture. All now fail
+the run, and finalization failures stop the owned process. Separate success
+probes verify default shutdown and successful retention. These controlled
+failure probes test launcher control flow, not DayZ behavior.

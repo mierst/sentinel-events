@@ -7,7 +7,7 @@ param(
     [Parameter(Mandatory)][string]$ModPath,
     [ValidateRange(1024, 65531)][int]$Port = 2402,
     [ValidateRange(10, 180)][int]$TimeoutSeconds = 90,
-    [ValidateSet('Admission')][string]$Suite = 'Admission',
+    [ValidateSet('Admission', 'Recovery', 'Store')][string]$Suite = 'Admission',
     [string]$CompletionPattern = '\[SEV\] fixture invalid-kit:',
     [switch]$KeepRunning
 )
@@ -52,6 +52,13 @@ function Save-LogSnapshot([string]$Source, [string]$Destination) {
     finally {
         if ($outputStream) { $outputStream.Dispose() }
         if ($inputStream) { $inputStream.Dispose() }
+    }
+}
+
+function Stop-OwnedTestServer($Process) {
+    if ($Process -and -not $Process.HasExited) {
+        Stop-Process -InputObject $Process -ErrorAction Stop
+        if (-not $Process.WaitForExit(5000)) { throw 'Owned server has not exited after stop request' }
     }
 }
 
@@ -136,6 +143,7 @@ try {
     Save-LogSnapshot $record.LiveLogPath $record.LogPath
     & (Join-Path $PSScriptRoot 'check-fixtures.ps1') -LogPath $record.LogPath -Suite $Suite
     if (-not $?) { throw 'Fixture checker failed' }
+    if ($ownedServer.HasExited) { throw "Owned server exited with code $($ownedServer.ExitCode) before run completion" }
     $record.Result = 'Passed'
 }
 catch {
@@ -145,22 +153,31 @@ catch {
 }
 finally {
     try {
-        if ($ownedServer -and -not $ownedServer.HasExited -and (-not $KeepRunning -or $record.Result -ne 'Passed')) {
-            Stop-Process -InputObject $ownedServer -ErrorAction Stop
-            if (-not $ownedServer.WaitForExit(5000)) { throw 'Owned server has not exited after stop request' }
+        if ($record.Result -eq 'Passed' -and $ownedServer.HasExited) {
+            throw "Owned server exited with code $($ownedServer.ExitCode) before evidence finalization"
+        }
+        if (-not $KeepRunning -or $record.Result -ne 'Passed') {
+            Stop-OwnedTestServer $ownedServer
         }
         if ($record.LogPath -and (Test-Path -LiteralPath $record.LogPath)) {
             $record.LogSha256 = (Get-FileHash -LiteralPath $record.LogPath -Algorithm SHA256).Hash
         }
-    }
-    catch {
-        $record.Result = 'Failed'
-        $record.Error = $_.Exception.Message
-        throw
-    }
-    finally {
+        if ($KeepRunning -and $record.Result -eq 'Passed' -and $ownedServer.HasExited) {
+            throw "Owned server exited with code $($ownedServer.ExitCode) before retention"
+        }
         $record.CompletedUtc = [DateTime]::UtcNow.ToString('o')
         $record | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding utf8
+    }
+    catch {
+        $finalizationError = $_
+        $record.Result = 'Failed'
+        $record.Error = $_.Exception.Message
+        try { Stop-OwnedTestServer $ownedServer }
+        catch { $record.Error += '; cleanup failed: ' + $_.Exception.Message }
+        $record.CompletedUtc = [DateTime]::UtcNow.ToString('o')
+        try { $record | ConvertTo-Json | Set-Content -LiteralPath $manifestPath -Encoding utf8 }
+        catch { Write-Warning ('Could not record final failure: ' + $_.Exception.Message) }
+        throw $finalizationError
     }
 }
 Write-Output ([pscustomobject]$record)
