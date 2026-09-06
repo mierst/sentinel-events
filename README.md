@@ -6,6 +6,10 @@ Configurable, staff-run events on a live DayZ survival server.
 recovery, journal, guard, spawn, and readiness fixtures pass on a dedicated server. There is no
 playable event or Workshop release yet.**
 
+The [public testing alpha](docs/public-alpha.md) is available as a signed local
+mod download. Join **Sentinel Events Alpha** at `144.76.35.18:2322` and coordinate
+readiness-menu tests in the [community Discord](https://discord.gg/5NKHAA8Wb3).
+
 The first planned mode is an isolated battle royale: scheduled registration,
 explicit ready checks, event kits, safe arena transport, a synchronized start,
 elimination, optional spectating, and a winner's reward claim window. Participants
