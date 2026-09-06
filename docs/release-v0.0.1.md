@@ -6,8 +6,8 @@ in [the v1 design](v1/design.md), not the admission-only rehearsal.
 
 | Gate | Required evidence | Current state |
 | --- | --- | --- |
-| Standalone package | Dedicated-server and client compilation, explicit version and dependencies | Diagnostic server build passes 149 fixtures; a prior diagnostic client build loaded; release package pending |
-| Administration | Owner grants, per-request authority, approved templates, scheduling, registration, audit | Contract recorded; ready-protocol prototype in progress; full scheduling pending |
+| Standalone package | Dedicated-server and client compilation, explicit version and dependencies | Diagnostic server build passes 219 fixtures; ready menu opened in a client; corrected UI appearance and release package pending |
+| Administration | Owner grants, per-request authority, approved templates, scheduling, registration, audit | Authenticated readiness rehearsal implemented; full roles, scheduling, and audit pending |
 | Admission | Consent, eligibility, shared deadline, preflight before stripping, safe spawn, countdown | Pure policy passes; mutation remains disabled |
 | Recovery | Persistent origin and character receipts, crash boundaries, offline and replacement returns | Basic one-client marker roundtrip passed across logout/restart; destructive recovery unproven |
 | Isolation | Movement/action/transfer guards, safe outsider relocation, ordinary-player control tests | Server controller freeze FAILED and withdrawn; replacement and transfer/multiplayer gates unresolved |

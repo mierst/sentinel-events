@@ -213,3 +213,33 @@ failed mechanism and must not be reused for admission. Its diagnostic entry is
 being disabled. A replacement requires new source investigation, a bounded test
 with immediate abort, and live verification before destructive work can proceed.
 This trial does not establish inventory-transfer or outgoing-damage protection.
+
+## 2026-09-06 - Ready menu and fixed-roster checks
+
+The read-only readiness rehearsal now has authenticated, bounded RPC requests,
+server-owned deadlines, stale-response rejection, and incremental safe-location
+preflight. Native recovery eligibility deliberately remains unavailable until a
+bounded durable recovery check exists. No inventory destruction, teleport, health
+change, or movement guard runs through this rehearsal.
+
+One connected client opened the ready menu and saw its server countdown. The
+tester confirmed that Decline returned normal controls. Server acknowledgement of
+that choice was not established. Screenshots exposed literal newline escapes and
+inconsistent text sizing; the source now separates warning paragraphs into widgets
+and applies explicit native text proportions. Corrected rendering is not yet tested.
+
+Independent review found that unrelated connection changes could interrupt fixed
+roster preflight. Three native regression fixtures reproduced the failure. The fix
+separates presentation revisions from preflight work generations and restricts
+connection-triggered cancellation to fixed roster members. All 219 fixtures passed
+in the corrected dedicated-server build: Ready 70, Admission 11, Recovery 9,
+Store 42, and GuardSpawn 87. PBO SHA256:
+`DDF028B4A1A1D5F577C90DEEE3714722368C6205395D1E60B20989604E01997A`.
+Fixture log SHA256:
+`23405302EB5B780C87D9134A6B72135FE9EED22A80BA2E3A81BEE23928D9BE8A`.
+This final artifact includes font normalization to the resource already rendered
+successfully by the title, and was rebuilt from commit `55d2a8b`.
+
+The tester is unavailable for further connected checks. The isolated menu server
+was stopped. Gameplay, destructive recovery, and multiplayer release gates remain
+open; this checkpoint is not approval to enable admission or publish a release.

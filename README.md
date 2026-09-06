@@ -2,8 +2,8 @@
 
 Configurable, staff-run events on a live DayZ survival server.
 
-**Status: implementation in progress. The package boots and 149 admission,
-recovery, journal, guard, and spawn fixtures pass on a dedicated server. There is no
+**Status: implementation in progress. The package boots and 219 admission,
+recovery, journal, guard, spawn, and readiness fixtures pass on a dedicated server. There is no
 playable event or Workshop release yet.**
 
 The first planned mode is an isolated battle royale: scheduled registration,
