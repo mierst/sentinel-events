@@ -14,7 +14,7 @@ Validated on 2026-09-05 with:
   `C:\Program Files (x86)\Mikero\DePboTools\bin\MakePbo.exe`.
 - PBO output
   `build/@SentinelEvents/addons/sentinel_events.pbo`, SHA-256
-  `36A07B9B91C46C915B634E0C7B1E2E073ACBF7AA2A4C98A747AFFEE2C8BD4780`.
+  `270B03E11E6F4036D571C461715153BFB2E8C7CC5141EA142A5544296B909AA4`.
 
 Run the source check and build from the repository root:
 
@@ -39,19 +39,37 @@ that engine-specific compile error. After hardening the build and log tools, the
 exact final artifact was booted again. Its log is:
 
 ```text
-build/private-test/profiles/20260905-220850-592/script_2026-09-05_22-08-52.log
+build/private-test/profiles/runner-20260905-222053-333/fixture-evidence.log
 ```
 
 Validate that log with:
 
 ```powershell
-.\tools\check-fixtures.ps1 -LogPath .\build\private-test\profiles\20260905-220850-592\script_2026-09-05_22-08-52.log -Suite Admission
+.\tools\check-fixtures.ps1 -LogPath .\build\private-test\profiles\runner-20260905-222053-333\fixture-evidence.log -Suite Admission
 ```
 
 Result: the Game, World, and Mission modules loaded without script compilation
 errors, and all 11 admission fixtures passed: `eligible`, `vehicle`,
 `unconscious`, `restrained`, `recent-combat`, `pending-session`, `stale-offer`,
 `deadline-equality`, `below-minimum`, `invalid-arena`, and `invalid-kit`.
+
+The run manifest is
+`build/private-test/profiles/runner-20260905-222053-333/run.json`. It records
+result `Passed`, the PBO hash above, server binary SHA-256
+`16CC3EE2A79AD726D0F4609824090F837BCD391FBA7B1A60213184E61CC0D9D9`, and
+fixture-log SHA-256
+`D92EBEEDE5DFB866EF4CA501182D456564F04FDFF5D78B1D21D837250E81D456`.
+`check-fixtures.ps1` validates the contents of the supplied log, including
+fixture completeness and script compilation errors; the launch manifest, not
+the fixture parser alone, establishes which artifact produced that log.
+
+Packaging safety probes also verified that:
+
+- a dummy `.biprivatekey` below `scripts` is rejected before the existing PBO
+  changes;
+- a source-tree junction is rejected before the existing PBO changes; and
+- an `addons` junction to an external probe directory is rejected while the
+  external sentinel file remains byte-for-byte unchanged.
 
 The prototype setting remains disabled (`CfgSentinelEvents.enabled = 0`). This
 slice adds only pure policy decisions and boot-time fixture logging; it has no
