@@ -8,11 +8,15 @@ modded class MissionServer
 		// Read-only load; absent/invalid operator settings never get overwritten.
 		bool configValid = SevHarnessConfig.Load(m_SevHarnessConfig);
 		Print("[SEV] harness config-valid=" + configValid.ToString() + " destructive-entry=false");
-		SevAdmissionTests.Register();
-		SevRecoveryTests.Register();
-		SevSessionStoreTests.Register();
-		SevGuardSpawnTests.Register();
-		SevReadyTests.Register();
+		// Disposable test missions opt in; ordinary servers never run fixtures.
+		if (FileExist("$mission:sev_run_fixtures"))
+		{
+			SevAdmissionTests.Register();
+			SevRecoveryTests.Register();
+			SevSessionStoreTests.Register();
+			SevGuardSpawnTests.Register();
+			SevReadyTests.Register();
+		}
 		SevCoordinator.Current = new SevCoordinator(m_SevHarnessConfig);
 		GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(SevCoordinator.Current.TimerTick, 250, true);
 	}

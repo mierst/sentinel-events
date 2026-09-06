@@ -62,6 +62,10 @@ failure probes test launcher control flow, not DayZ behavior.
 
 ## Independent diagnostic watcher
 
+Startup fixtures require an explicit empty `sev_run_fixtures` file in the
+disposable test mission directory. Create it before using the fixture runner.
+Never include that marker in a public server mission or client package.
+
 `tools/watch-private-test.ps1` attaches to a successful retained run using its
 profile's `run.json`. It validates the process identity, starts reading at the
 current end of the live log, and writes a unique `motion-watch-*.ready.json` before
