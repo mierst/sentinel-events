@@ -1,5 +1,5 @@
-// A trusted local diagnostic caller must establish this baseline independently.
-// The native controller has no getters for these values. Never accept from RPC.
+// Compatibility data for the withdrawn movement diagnostic and format fixtures.
+// A supplied baseline does not authorize any native controller operation.
 class SevMovementBaseline
 {
 	bool Known;
@@ -19,7 +19,6 @@ class SevGuardState
 {
 	PlayerBase Player;
 	ref SevGuardLease Lease;
-	ref SevMovementBaseline Movement;
 	vector Anchor;
 }
 
@@ -66,15 +65,6 @@ class SevEntryGuard
 		SevGuardState state;
 		if (!s_SevTokens.Find(token, state) || state.Player != player) return false;
 		if (!state.Lease.Held) return true;
-		if (state.Movement)
-		{
-			HumanInputController controller = player.GetInputController();
-			if (!controller) return false;
-			controller.OverrideMovementSpeed(state.Movement.SpeedType, state.Movement.Speed);
-			controller.OverrideMovementAngle(state.Movement.AngleType, state.Movement.Angle);
-			controller.SetDisabled(state.Movement.Disabled);
-			state.Movement = null;
-		}
 		player.SetAllowDamage(state.Lease.PriorAllowDamage);
 		player.SevSetGuardPresentation(false);
 		state.Lease.Release(state.Lease.Identity, token);
@@ -113,23 +103,9 @@ class SevEntryGuard
 
 	static bool BeginMovementDiagnostic(PlayerBase player, string token, SevMovementBaseline baseline)
 	{
-		if (!GetGame().IsServer() || !player || !baseline || !baseline.IsValid()) return false;
-		SevGuardState state;
-		if (!s_SevTokens.Find(token, state) || state.Player != player || !state.Lease.Held || state.Movement) return false;
-		HumanInputController controller = player.GetInputController();
-		if (!controller) return false;
-		// Snapshot values: caller mutation cannot change restoration after acquire.
-		state.Movement = new SevMovementBaseline();
-		state.Movement.Known = true;
-		state.Movement.Disabled = baseline.Disabled;
-		state.Movement.SpeedType = baseline.SpeedType;
-		state.Movement.Speed = baseline.Speed;
-		state.Movement.AngleType = baseline.AngleType;
-		state.Movement.Angle = baseline.Angle;
-		controller.SetDisabled(true);
-		controller.OverrideMovementSpeed(HumanInputControllerOverrideType.ENABLED, 0);
-		controller.OverrideMovementAngle(HumanInputControllerOverrideType.ENABLED, 0);
-		return true;
+		// Withdrawn after live uncontrolled-movement failure. Preserve callers but
+		// never access the player/controller, install overrides, or claim a freeze.
+		return false;
 	}
 
 	static bool MeasureDisplacement(PlayerBase player, string token, out float meters)

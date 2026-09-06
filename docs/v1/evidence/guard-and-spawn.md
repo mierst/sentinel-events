@@ -5,6 +5,13 @@ admit players, strip inventory, teleport characters, or authorize recovery.
 Destructive entry remains disabled. Dedicated-server script compilation and pure
 fixtures cannot establish native movement, transfer, damage, or physics safety.
 
+**Live movement authority FAILED.** The server input-controller candidate was
+withdrawn after a connected-client trial showed more than 120 m displacement and
+the user reported uncontrolled movement toward the ocean. `BeginMovementDiagnostic`
+now returns false unconditionally. It cannot access a player/controller or install
+movement overrides; guard release no longer contains movement-controller writes.
+`MovementProven()` remains false. No replacement is enabled.
+
 ## Contracts and boundaries
 
 `SevHarnessConfig` has explicit absent center/fallback arrays, an empty Steam64
@@ -38,11 +45,11 @@ References are paths in the extracted vanilla script tree, used as interface
 evidence rather than copied implementation:
 
 - `scripts/3_Game/human.c:7-25,230-237`: input-controller disabled flag and movement
-  overrides have setters but no state getters. Ordinary guard acquire/release
-  must not guess or reset a preexisting state. The separate server diagnostic
-  movement operation requires the trusted local caller to supply a known baseline
-  for an isolated trial. A baseline cannot come from a client/RPC. Release restores
-  only that supplied baseline. Concurrent controller writers invalidate the trial.
+  overrides have setters but no state getters. The former diagnostic applied
+  SetDisabled and speed/angle overrides using a supplied baseline. That candidate
+  failed the live trial and all of those movement writes, including release-time
+  writes, have been removed. The baseline data type remains only for caller and
+  fixture compatibility; it does not authorize a controller operation.
 - `scripts/3_Game/Entities/Object.c:1184-1192`: observable `GetAllowDamage` and
   `SetAllowDamage`. Another protection writer during a held lease is an unresolved
   ownership conflict; this probe only preserves the captured preexisting value.
@@ -136,9 +143,51 @@ packaged the artifact; packaging itself was never treated as compilation evidenc
 - Tested PBO SHA256: `F215B3D2A139CF67C34AED4C1987BF6AD1CD4DCE2DBA566BB51942B5A647A9C0`.
 - Captured fixture log SHA256: `4800887912AAAEA2253C65A9A6995E36ACE0205C7769921147AA70D1FBAB025D`.
 
-The server was retained by the lead for connected-client diagnostics. At this
-commit no connected-client Task3 result is claimed. **Task3 acceptance remains
+The server was retained by the lead for connected-client diagnostics. At that
+checkpoint no connected-client Task3 result was claimed. **Task3 acceptance remains
 incomplete**, including the unimplemented non-hands transfer authority gate.
+
+## Failed connected-client movement trial
+
+The subsequent `p/g1` private diagnostic used artifact SHA256
+`83B720895C75CC6CDE6EDF2A9E0B9675185A56CF0220BB74F52ACAA20ADA4E9A`.
+The server log recorded guard acquisition and movement-diagnostic activation as
+true, followed by these measured displacements from the anchor:
+
+| Elapsed | Displacement |
+| --- | --- |
+| 5 seconds | 20.5126 m |
+| 20 seconds | 82.2243 m |
+| 60 seconds | 120.205 m |
+
+The user reported being dragged toward the ocean. This fails the freeze gate;
+the evidence does not distinguish movement caused by the override sequence from
+movement that the sequence failed to contain. The reported isolated baseline was
+an assumption, not native state readback. At 60 seconds the log recorded release
+true and allowDamage true, but neither proves restored control, a safe position,
+or correct release under other preexisting protection. The lead stopped the test
+server. No restoration or server-authority pass is claimed.
+
+Failed-trial log SHA256:
+`B393C94534E93048EBDC1203FAD2CAB550AEF87EF92B472A656917C9DF464F73`.
+Its source file was `p/g1/script_2026-09-05_23-28-26.log`; no player identity or
+character coordinates are reproduced here.
+
+The immediate source backout preserves the callable diagnostic signature and
+returns false without side effects. Stored movement baselines and controller
+restoration writes were removed. Static checks verify an unconditional false
+body and absence of SetDisabled/OverrideMovementSpeed/OverrideMovementAngle calls
+in SevEntryGuard. A replacement requires design and evidence review before any
+new connected-client execution; it is not part of this backout.
+
+The lead's source-withdrawal artifact passed native compilation and all 149
+fixtures in `p/withdraw1`, with no native script errors. The worker independently
+checked GuardSpawn87 and the captured log hash. This verifies compilation and
+unchanged fixture behavior, not restored live control or a replacement freeze.
+No connected-client trial was run for the withdrawn path.
+
+- Withdrawal artifact SHA256: `5E5B437181ADCDF88DDC98165BCD2186654C05726FCAB6D0E116E741DA4032CC`.
+- Withdrawal log SHA256: `668A613CC7DDC5D559CCF507B4E2FAD29812B320B7DD7CD3E0172E691285392B`.
 
 ## Unrun acceptance gates
 
@@ -173,9 +222,9 @@ not prove that rejecting an already acknowledged transaction leaves the client
 and inventory juncture consistent. The controlled completion-after-acquisition
 trial remains **NOT RUN**, separately from non-hands transfer coverage.
 
-The following require connected-client observations and are **NOT RUN**:
+Beyond the failed movement trial above, the following cases remain **NOT RUN**:
 
-- Walking, sprinting, jumping, stance, ladder, held input during transition, slopes,
+- The full walking/sprinting/jumping, stance, ladder, held-input transition, slopes,
   latency, and server/observer displacement with server-only and combined guards.
 - Firearm modes, mid-burst activation, fists/melee/finisher, outgoing projectile
   attribution, and already-started actions or throws.
